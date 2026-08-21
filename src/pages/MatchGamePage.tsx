@@ -1,0 +1,22 @@
+import { useNavigate } from 'react-router-dom'
+import { MatchGame } from '../components/match/MatchGame'
+import { awsServices } from '../data/awsServices'
+
+/** Match Game screen. */
+export function MatchGamePage() {
+  const navigate = useNavigate()
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">เกมจับคู่</h1>
+        <p className="mt-1 text-sm text-slate-600">
+          การ์ดทุกใบแสดงให้เห็นตั้งแต่แรก คลิกชื่อ service แล้วคลิกคำอธิบายที่คู่กัน
+          จับคู่ครบเร็วและทายพลาดน้อย ยิ่งได้ดาวมาก
+        </p>
+      </div>
+
+      <MatchGame services={awsServices} onBackHome={() => navigate('/')} />
+    </div>
+  )
+}
