@@ -43,6 +43,8 @@ export interface UseProgressResult {
   recordReviewing: (serviceId: string) => void
   /** Stores the outcome of a finished Match Game. */
   recordMatchResult: (difficulty: Difficulty, seconds: number, attempts: number) => void
+  /** Stores the outcome of a finished scenario quiz. */
+  recordQuizResult: (correct: number, total: number) => void
   /**
    * Adds a finished run to the leaderboard and returns the rank it earned,
    * or null when it did not make the top of that difficulty.
@@ -166,6 +168,28 @@ export function useProgressState(): UseProgressResult {
     [commit],
   )
 
+  const recordQuizResult = useCallback(
+    (correct: number, total: number) => {
+      if (total <= 0) return
+      const safeTotal = Math.round(total)
+      const safeCorrect = Math.min(Math.max(0, Math.round(correct)), safeTotal)
+      const percent = Math.round((safeCorrect / safeTotal) * 100)
+
+      commit((current) => ({
+        ...current,
+        quiz: {
+          quizzesTaken: current.quiz.quizzesTaken + 1,
+          // Best score never regresses.
+          bestPercent: Math.max(current.quiz.bestPercent, percent),
+          totalAnswered: current.quiz.totalAnswered + safeTotal,
+          totalCorrect: current.quiz.totalCorrect + safeCorrect,
+          lastQuizDate: todayISO(),
+        },
+      }))
+    },
+    [commit],
+  )
+
   const submitScore = useCallback(
     ({ name, difficulty, seconds, attempts, stars }: SubmitScoreInput): number | null => {
       const entry: LeaderboardEntry = {
@@ -249,6 +273,7 @@ export function useProgressState(): UseProgressResult {
     recordMastered,
     recordReviewing,
     recordMatchResult,
+    recordQuizResult,
     submitScore,
     leaderboardFor: leaderboardForDifficulty,
     playerName: progress.playerName,

@@ -136,6 +136,65 @@ export interface MatchGameProgress {
   lastPlayDate: string
 }
 
+/** The four CLF-C02 exam domains, used to group and filter quiz questions. */
+export type QuizDomain =
+  | 'Cloud Concepts'
+  | 'Security & Compliance'
+  | 'Technology'
+  | 'Billing & Support'
+
+/** Ordered list of every quiz domain. */
+export const QUIZ_DOMAINS: readonly QuizDomain[] = [
+  'Cloud Concepts',
+  'Security & Compliance',
+  'Technology',
+  'Billing & Support',
+] as const
+
+/** A domain filter value: one concrete domain or the "all" pseudo-value. */
+export type QuizDomainFilter = QuizDomain | 'all'
+
+/** One scenario-based multiple choice question. */
+export interface QuizQuestion {
+  id: string
+  domain: QuizDomain
+  /** Situation the learner is placed in, in Thai. */
+  scenario: string
+  /** What is actually being asked. */
+  question: string
+  /** Answer options; exactly one is correct. */
+  choices: string[]
+  /** Index into `choices` of the single correct answer. */
+  correctIndex: number
+  /** Why the answer is right, and why the tempting ones are not. */
+  explanation: string
+  /** Service ids from the dataset, for cross-linking to the Learn tab. */
+  relatedServices?: string[]
+}
+
+/** One option as presented to the player, after the choices are shuffled. */
+export interface QuizOption {
+  text: string
+  isCorrect: boolean
+}
+
+/** A question prepared for a session, with its options already shuffled. */
+export interface PreparedQuizQuestion {
+  question: QuizQuestion
+  options: QuizOption[]
+}
+
+/** Quiz statistics kept across sessions. */
+export interface QuizProgress {
+  quizzesTaken: number
+  /** Best score as a whole percentage, 0-100. */
+  bestPercent: number
+  /** Running totals, so overall accuracy can be shown. */
+  totalAnswered: number
+  totalCorrect: number
+  lastQuizDate: string
+}
+
 /** One finished Match Game run, as shown on the leaderboard. */
 export interface LeaderboardEntry {
   /** Unique key for React lists and de-duplication. */
@@ -156,6 +215,7 @@ export interface LeaderboardEntry {
 export interface UserProgress {
   flashCards: FlashCardProgress
   matchGame: MatchGameProgress
+  quiz: QuizProgress
   /** Last name the player entered, reused as the default next time. */
   playerName: string
   /** Best runs per difficulty, already sorted fastest first. */

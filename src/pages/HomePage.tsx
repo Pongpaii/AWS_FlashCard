@@ -58,7 +58,45 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Link
+          to="/learn"
+          aria-label="เข้าโหมดเรียนรู้"
+          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-11 w-11 place-items-center rounded-lg bg-emerald-100 text-xl"
+          >
+            📘
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-emerald-600">
+            เรียนรู้
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            อ่านทบทวนทุกบริการแยกตามหมวด พร้อมหน้าที่หลัก เคล็ดลับจำ และจุดที่มักออกสอบ ค้นหาได้
+          </p>
+        </Link>
+
+        <Link
+          to="/quiz"
+          aria-label="เข้าโหมดควิซตามสถานการณ์"
+          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-11 w-11 place-items-center rounded-lg bg-sky-100 text-xl"
+          >
+            🧠
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-sky-600">
+            ควิซสถานการณ์
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            โจทย์สไตล์ข้อสอบ CLF-C02 ให้สถานการณ์มาแล้วเลือกคำตอบ พร้อมคำอธิบายว่าทำไมข้ออื่นไม่ใช่
+          </p>
+        </Link>
+
         <Link
           to="/flashcards"
           aria-label="เข้าโหมด Flash Cards"

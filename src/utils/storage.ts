@@ -28,6 +28,13 @@ export const DEFAULT_PROGRESS: UserProgress = {
     bestScore: {},
     lastPlayDate: '',
   },
+  quiz: {
+    quizzesTaken: 0,
+    bestPercent: 0,
+    totalAnswered: 0,
+    totalCorrect: 0,
+    lastQuizDate: '',
+  },
   playerName: '',
   leaderboard: [],
 }
@@ -37,6 +44,7 @@ export function defaultProgress(): UserProgress {
   return {
     flashCards: { ...DEFAULT_PROGRESS.flashCards, mastered: [], reviewing: [] },
     matchGame: { ...DEFAULT_PROGRESS.matchGame, bestTime: {}, bestScore: {} },
+    quiz: { ...DEFAULT_PROGRESS.quiz },
     playerName: '',
     leaderboard: [],
   }
@@ -236,6 +244,9 @@ export function normalizeProgress(raw: unknown, validIds?: ReadonlySet<string>):
   const mg = (typeof source.matchGame === 'object' && source.matchGame !== null
     ? source.matchGame
     : {}) as Record<string, unknown>
+  const qz = (typeof source.quiz === 'object' && source.quiz !== null
+    ? source.quiz
+    : {}) as Record<string, unknown>
 
   const keepKnownIds = (ids: string[]) => (validIds ? ids.filter((id) => validIds.has(id)) : ids)
 
@@ -256,6 +267,15 @@ export function normalizeProgress(raw: unknown, validIds?: ReadonlySet<string>):
       bestTime: toPositiveNumberMap(mg.bestTime),
       bestScore: toPositiveNumberMap(mg.bestScore),
       lastPlayDate: toIsoDate(mg.lastPlayDate),
+    },
+    quiz: {
+      quizzesTaken: toCount(qz.quizzesTaken),
+      // A percentage can never exceed 100, however odd the stored value is.
+      bestPercent: Math.min(100, toCount(qz.bestPercent)),
+      totalAnswered: toCount(qz.totalAnswered),
+      // Correct answers can never outnumber the questions answered.
+      totalCorrect: Math.min(toCount(qz.totalCorrect), toCount(qz.totalAnswered)),
+      lastQuizDate: toIsoDate(qz.lastQuizDate),
     },
     // An empty name stays empty: it means "never entered one yet", so the input
     // starts blank rather than pre-filled with the anonymous label.

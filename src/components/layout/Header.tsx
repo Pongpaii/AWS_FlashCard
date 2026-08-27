@@ -7,7 +7,9 @@ interface HeaderProps {
 
 const LINKS = [
   { to: '/', label: 'หน้าแรก' },
+  { to: '/learn', label: 'เรียนรู้' },
   { to: '/flashcards', label: 'Flash Cards' },
+  { to: '/quiz', label: 'ควิซ' },
   { to: '/match', label: 'เกมจับคู่' },
 ] as const
 

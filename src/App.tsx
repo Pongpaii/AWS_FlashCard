@@ -4,7 +4,9 @@ import { ProgressProvider } from './hooks/ProgressProvider'
 import { useProgress } from './hooks/useProgress'
 import { FlashCardPage } from './pages/FlashCardPage'
 import { HomePage } from './pages/HomePage'
+import { LearnPage } from './pages/LearnPage'
 import { MatchGamePage } from './pages/MatchGamePage'
+import { QuizPage } from './pages/QuizPage'
 
 /** Shell that renders the header and the routed page. */
 function AppShell() {
@@ -17,7 +19,9 @@ function AppShell() {
       <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/learn" element={<LearnPage />} />
           <Route path="/flashcards" element={<FlashCardPage />} />
+          <Route path="/quiz" element={<QuizPage />} />
           <Route path="/match" element={<MatchGamePage />} />
           {/* Unknown paths fall back to the landing page. */}
           <Route path="*" element={<Navigate to="/" replace />} />
