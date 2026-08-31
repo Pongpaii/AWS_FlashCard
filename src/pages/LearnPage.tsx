@@ -83,6 +83,30 @@ export function LearnPage() {
           อ่านทบทวน AWS Services ทั้ง {categoryCounts.all} ตัวที่ออกสอบ CLF-C02 แยกตามหมวด
           แต่ละตัวมีหน้าที่หลัก เคล็ดลับจำ และจุดที่มักออกสอบ
         </p>
+        <p className="mt-2 text-sm text-slate-600">
+          หัวข้อที่ไม่ใช่ตัวบริการแยกไว้เป็นหน้าเฉพาะ:{' '}
+          <Link
+            to="/well-architected"
+            className="font-semibold text-purple-700 underline decoration-dotted hover:text-purple-800"
+          >
+            Well-Architected Framework
+          </Link>{' '}
+          (6 pillar กับ design principles),{' '}
+          <Link
+            to="/caf"
+            className="font-semibold text-indigo-700 underline decoration-dotted hover:text-indigo-800"
+          >
+            Cloud Adoption Framework
+          </Link>{' '}
+          (6 perspectives, 4 phases, 4 domains) และ{' '}
+          <Link
+            to="/support"
+            className="font-semibold text-amber-700 underline decoration-dotted hover:text-amber-800"
+          >
+            AWS Support Plans
+          </Link>{' '}
+          (ตารางเทียบทั้ง 5 แผน)
+        </p>
       </div>
 
       <div className="flex flex-col gap-4 rounded-xl bg-white p-5 shadow-md ring-1 ring-slate-200">
@@ -171,6 +195,18 @@ export function LearnPage() {
             className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-indigo-700 ring-1 ring-indigo-200 transition-colors hover:bg-indigo-100"
           >
             เล่นเกมจับคู่
+          </Link>
+          <Link
+            to="/well-architected"
+            className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-purple-700 ring-1 ring-purple-200 transition-colors hover:bg-purple-50"
+          >
+            ฝึกจับ 6 pillar
+          </Link>
+          <Link
+            to="/support"
+            className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-amber-700 ring-1 ring-amber-200 transition-colors hover:bg-amber-50"
+          >
+            อ่านสรุป Support Plans
           </Link>
         </div>
       </div>

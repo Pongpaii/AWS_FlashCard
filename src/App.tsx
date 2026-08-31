@@ -3,10 +3,14 @@ import { Header } from './components/layout/Header'
 import { ProgressProvider } from './hooks/ProgressProvider'
 import { useProgress } from './hooks/useProgress'
 import { FlashCardPage } from './pages/FlashCardPage'
+import { CafPage } from './pages/CafPage'
+import { CustomMatchPage } from './pages/CustomMatchPage'
 import { HomePage } from './pages/HomePage'
 import { LearnPage } from './pages/LearnPage'
 import { MatchGamePage } from './pages/MatchGamePage'
 import { QuizPage } from './pages/QuizPage'
+import { SupportPlanPage } from './pages/SupportPlanPage'
+import { WellArchitectedPage } from './pages/WellArchitectedPage'
 
 /** Shell that renders the header and the routed page. */
 function AppShell() {
@@ -20,9 +24,13 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/learn" element={<LearnPage />} />
+          <Route path="/well-architected" element={<WellArchitectedPage />} />
+          <Route path="/caf" element={<CafPage />} />
+          <Route path="/support" element={<SupportPlanPage />} />
           <Route path="/flashcards" element={<FlashCardPage />} />
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/match" element={<MatchGamePage />} />
+          <Route path="/custom-match" element={<CustomMatchPage />} />
           {/* Unknown paths fall back to the landing page. */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

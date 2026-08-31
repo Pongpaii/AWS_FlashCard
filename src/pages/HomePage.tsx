@@ -58,7 +58,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           to="/learn"
           aria-label="เข้าโหมดเรียนรู้"
@@ -75,6 +75,86 @@ export function HomePage() {
           </h2>
           <p className="mt-1 text-sm text-slate-600">
             อ่านทบทวนทุกบริการแยกตามหมวด พร้อมหน้าที่หลัก เคล็ดลับจำ และจุดที่มักออกสอบ ค้นหาได้
+          </p>
+        </Link>
+
+        <Link
+          to="/well-architected"
+          aria-label="ดูสรุป AWS Well-Architected Framework"
+          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-11 w-11 place-items-center rounded-lg bg-purple-100 text-xl"
+          >
+            🏛️
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-purple-600">
+            Well-Architected
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            6 pillar กับ design principles ทั้งหมด พร้อมตัวช่วยจำ คู่ที่มักสับสน
+            และแบบฝึกจับ pillar จากสถานการณ์
+          </p>
+        </Link>
+
+        <Link
+          to="/caf"
+          aria-label="ดูสรุป AWS Cloud Adoption Framework"
+          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-11 w-11 place-items-center rounded-lg bg-indigo-100 text-xl"
+          >
+            🧭
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-indigo-600">
+            CAF
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Cloud Adoption Framework: 6 perspectives, 4 phases, 4 domains พร้อมแบบฝึกจับ
+            perspective และตารางเทียบกับ Well-Architected
+          </p>
+        </Link>
+
+        <Link
+          to="/custom-match"
+          aria-label="สร้างเกมจับคู่แบบกำหนดเอง"
+          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-11 w-11 place-items-center rounded-lg bg-rose-100 text-xl"
+          >
+            🎛️
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-rose-600">
+            จับคู่กำหนดเอง
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            เลือกเองว่าจะจับคู่เรื่องอะไร ผสมข้ามหมวดได้ทั้ง services, Well-Architected, CAF
+            และ Pricing เลือกจำนวนคู่ได้ 4 ถึง 12
+          </p>
+        </Link>
+
+        <Link
+          to="/support"
+          aria-label="ดูสรุปแผน AWS Support"
+          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-11 w-11 place-items-center rounded-lg bg-amber-100 text-xl"
+          >
+            🛟
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-amber-600">
+            Support Plans
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            เทียบแผน support ทั้ง 5 ระดับ เวลาตอบกลับตามความรุนแรงของเคส สิทธิ์ TAM
+            และคำใบ้ในโจทย์ที่ชี้ไปแต่ละแผน
           </p>
         </Link>
 

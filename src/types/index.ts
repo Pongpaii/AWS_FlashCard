@@ -66,6 +66,139 @@ export interface AWSService {
   examTips?: string
 }
 
+/** The six pillars of the AWS Well-Architected Framework. */
+export type PillarId =
+  | 'operational-excellence'
+  | 'security'
+  | 'reliability'
+  | 'performance-efficiency'
+  | 'cost-optimization'
+  | 'sustainability'
+
+/** Ordered exactly as AWS publishes them, which is the order to memorise. */
+export const PILLAR_IDS: readonly PillarId[] = [
+  'operational-excellence',
+  'security',
+  'reliability',
+  'performance-efficiency',
+  'cost-optimization',
+  'sustainability',
+] as const
+
+/** One design principle inside a pillar. */
+export interface DesignPrinciple {
+  /** The English wording AWS uses; this is the phrase the exam echoes. */
+  en: string
+  /** Thai gloss of what it actually means. */
+  th: string
+}
+
+/** One pillar of the Well-Architected Framework, written as study notes. */
+export interface WellArchitectedPillar {
+  id: PillarId
+  /** English name, e.g. "Reliability". */
+  name: string
+  /** Thai name shown next to the English one. */
+  nameTh: string
+  /** The one question this pillar answers, in Thai. */
+  focus: string
+  /** One-line Thai definition from the framework. */
+  definition: string
+  /** AWS design principles for this pillar, in the published order. */
+  principles: DesignPrinciple[]
+  /** Words in an exam scenario that point at this pillar. */
+  keywords: string[]
+  /** Service ids from the dataset that typically show up with this pillar. */
+  services: string[]
+  /** The trap the exam likes to set between this pillar and its neighbours. */
+  examTips: string
+}
+
+/** One item in the pillar recall drill: a cue and the pillar that answers it. */
+export interface PillarDrillItem {
+  id: string
+  /** Scenario fragment in Thai, phrased the way the exam phrases it. */
+  cue: string
+  answer: PillarId
+  /** Why that pillar, shown after the answer is revealed. */
+  why: string
+}
+
+/**
+ * The five AWS Support plans tested on CLF-C02, ordered from cheapest to
+ * richest. Kept as ids so the UI can key columns and rows off them.
+ */
+export type SupportPlanTier =
+  | 'basic'
+  | 'developer'
+  | 'business'
+  | 'enterprise-on-ramp'
+  | 'enterprise'
+
+/** Ordered list of every support plan tier. Drives the comparison columns. */
+export const SUPPORT_PLAN_TIERS: readonly SupportPlanTier[] = [
+  'basic',
+  'developer',
+  'business',
+  'enterprise-on-ramp',
+  'enterprise',
+] as const
+
+/** Case severity levels used in the AWS Support response-time table. */
+export type SupportSeverity =
+  | 'general-guidance'
+  | 'system-impaired'
+  | 'production-impaired'
+  | 'production-down'
+  | 'business-critical-down'
+
+/** Ordered from least to most urgent, matching the AWS published table. */
+export const SUPPORT_SEVERITIES: readonly SupportSeverity[] = [
+  'general-guidance',
+  'system-impaired',
+  'production-impaired',
+  'production-down',
+  'business-critical-down',
+] as const
+
+/** One AWS Support plan, written as study notes for the exam. */
+export interface SupportPlan {
+  id: SupportPlanTier
+  /** Short label used in tables, e.g. "Business". */
+  name: string
+  /** Full product name, e.g. "AWS Business Support". */
+  fullName: string
+  /** One-line Thai summary of who the plan is for. */
+  tagline: string
+  /** Price rule in Thai, including the monthly minimum. */
+  price: string
+  /** Contact channels and who may open cases. */
+  channels: string
+  /**
+   * Response time per severity in Thai. `null` means the plan does not cover
+   * that severity at all, which is the point most exam questions turn on.
+   */
+  responseTimes: Record<SupportSeverity, string | null>
+  /** What the plan gets from Trusted Advisor. */
+  trustedAdvisor: string
+  /** Technical Account Manager entitlement. */
+  tam: string
+  /** Typical scenario wording that points at this plan. */
+  bestFor: string
+  /** Bullet points worth remembering. */
+  highlights: string[]
+  /** The trap or discriminator the exam likes to test. */
+  examTips: string
+}
+
+/** One row of the plan-by-plan feature matrix. */
+export interface SupportFeatureRow {
+  /** Feature name in Thai (English term kept where it is the exam keyword). */
+  label: string
+  /** `true` = included, `false` = not included, string = short detail. */
+  values: Record<SupportPlanTier, string | boolean>
+}
+
 /** Flash Card session state owned by useFlashCards. */
 export interface FlashCardState {
   currentIndex: number
@@ -96,6 +229,79 @@ export interface MatchCard {
   subtitle?: string
   type: 'service' | 'description'
   isMatched: boolean
+}
+
+/**
+ * A term/meaning pair that can be dealt onto a match board. Decoupled from
+ * `AWSService` so the same board works for framework concepts and pricing
+ * terms, not just services.
+ */
+export interface MatchPair {
+  /** Unique across every deck; both tiles of the pair share it. */
+  pairId: string
+  /** Left-hand side: the thing to name. */
+  term: string
+  /** Optional second line under the term, never used for matching. */
+  termSubtitle?: string
+  /** Right-hand side: what the term means. */
+  meaning: string
+}
+
+/** A checkbox-selectable set of pairs in the custom match builder. */
+export interface MatchGroup {
+  id: string
+  /** Thai label shown in the builder. */
+  label: string
+  /** Short hint about what the pairs are, e.g. "ชื่อบริการ ↔ หน้าที่". */
+  hint: string
+  pairs: MatchPair[]
+}
+
+/** A themed collection of groups, shown as one tab in the builder. */
+export interface MatchDeck {
+  id: string
+  label: string
+  description: string
+  groups: MatchGroup[]
+}
+
+/** State of a custom match round; mirrors MatchGameState without difficulty. */
+export interface CustomMatchState {
+  cards: MatchCard[]
+  selectedIds: string[]
+  wrongIds: string[]
+  matchedPairs: string[]
+  attempts: number
+  startTime: number | null
+  isComplete: boolean
+  /** Number of pairs dealt onto the board. */
+  pairCount: number
+}
+
+/** One AWS CAF perspective. */
+export interface CafPerspective {
+  id: string
+  /** English name, e.g. "Governance". */
+  name: string
+  nameTh: string
+  /** One-line Thai answer to "perspective นี้ดูเรื่องอะไร". */
+  focus: string
+  /** Longer Thai definition. */
+  definition: string
+  /** Typical stakeholders, as the whitepaper lists them. */
+  stakeholders: string[]
+  /** Example foundational capabilities with a short Thai gloss. */
+  capabilities: { name: string; th: string }[]
+  examTips: string
+}
+
+/** One item in a generic concept recall drill. */
+export interface ConceptDrillItem {
+  id: string
+  cue: string
+  /** Id of the correct option. */
+  answer: string
+  why: string
 }
 
 /** Match Game state owned by useMatchGame. */

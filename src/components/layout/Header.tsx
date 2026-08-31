@@ -8,9 +8,13 @@ interface HeaderProps {
 const LINKS = [
   { to: '/', label: 'หน้าแรก' },
   { to: '/learn', label: 'เรียนรู้' },
+  { to: '/well-architected', label: 'Well-Architected' },
+  { to: '/caf', label: 'CAF' },
+  { to: '/support', label: 'Support Plans' },
   { to: '/flashcards', label: 'Flash Cards' },
   { to: '/quiz', label: 'ควิซ' },
   { to: '/match', label: 'เกมจับคู่' },
+  { to: '/custom-match', label: 'จับคู่กำหนดเอง' },
 ] as const
 
 /** Sticky top bar with the app title, navigation, and a mastered counter. */
@@ -31,7 +35,7 @@ export function Header({ masteredCount, totalCount }: HeaderProps) {
           </span>
         </NavLink>
 
-        <nav aria-label="เมนูหลัก" className="flex items-center gap-1">
+        <nav aria-label="เมนูหลัก" className="flex flex-wrap items-center gap-1">
           {LINKS.map((link) => (
             <NavLink
               key={link.to}

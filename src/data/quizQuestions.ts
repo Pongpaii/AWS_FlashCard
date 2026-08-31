@@ -10,7 +10,7 @@ import { QUIZ_DOMAINS } from '../types'
  * Every answer is grounded in documented AWS behaviour.
  */
 export const quizQuestions: QuizQuestion[] = [
-  // ------------------------------------------------------ Cloud Concepts (7)
+  // ----------------------------------------------------- Cloud Concepts (13)
   {
     id: 'cc-capex-opex',
     domain: 'Cloud Concepts',
@@ -127,6 +127,96 @@ export const quizQuestions: QuizQuestion[] = [
     correctIndex: 0,
     explanation:
       'โจทย์เน้นเวลาที่ใช้ตั้งแต่คิดจนได้ทดลอง ลดจาก 3 เดือนเหลือไม่กี่นาที และการยกเลิกได้ทันที นี่คือ agility ข้ออื่นไม่เกี่ยวกับความเร็วในการทดลอง',
+  },
+  {
+    id: 'cc-wa-pillar-count',
+    domain: 'Cloud Concepts',
+    scenario:
+      'ผู้จัดการโครงการเพิ่งได้ยินเรื่อง AWS Well-Architected Framework จากทีมสถาปนิก และอยากรู้ว่ากรอบนี้ประกอบด้วยเสาหลักอะไรบ้าง',
+    question: 'ข้อใดคือรายชื่อ pillar ของ AWS Well-Architected Framework',
+    choices: [
+      'Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, Sustainability',
+      'Security, Compliance, Reliability, Scalability, Cost Optimization, Automation',
+      'People, Process, Platform, Security, Governance, Operations',
+      'Availability, Durability, Reliability, Security, Performance, Cost',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Well-Architected Framework มี 6 pillar คือ Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization และ Sustainability ซึ่ง Sustainability เพิ่มเข้ามาเป็นตัวที่ 6 ในปี 2021 ตัวเลือกที่มี People, Process, Platform เป็นชุด perspective ของ AWS Cloud Adoption Framework (CAF) ซึ่งเป็นกรอบต่างเรื่องกัน ส่วนตัวเลือกอื่นเป็นคำที่ฟังดูคุ้นแต่ไม่ใช่ชื่อ pillar',
+  },
+  {
+    id: 'cc-wa-sustainability',
+    domain: 'Cloud Concepts',
+    scenario:
+      'ฝ่าย ESG ขอให้ทีมเทคโนโลยีลดผลกระทบต่อสิ่งแวดล้อมจากการรันระบบบน AWS โดยเสนอให้ปิดทรัพยากรที่นิ่งเฉย ใช้ managed service มากขึ้น และย้ายไปใช้ฮาร์ดแวร์รุ่นที่ประหยัดพลังงานกว่า',
+    question: 'ข้อเสนอเหล่านี้อยู่ใน pillar ใด',
+    choices: ['Sustainability', 'Cost Optimization', 'Operational Excellence', 'Reliability'],
+    correctIndex: 0,
+    explanation:
+      'ทั้งสามข้อเสนอตรงกับหลักของ Sustainability คือ Maximize utilization, Use managed services และ Anticipate and adopt new, more efficient hardware and software offerings จุดตัดสินคือโจทย์วัดผลด้วยผลกระทบต่อสิ่งแวดล้อม ไม่ใช่จำนวนเงินที่ประหยัด ถ้าโจทย์วัดผลด้วยเงินคำตอบจะเป็น Cost Optimization',
+  },
+  {
+    id: 'cc-wa-operational-excellence',
+    domain: 'Cloud Concepts',
+    scenario:
+      'ทีมเปลี่ยนมานิยาม infrastructure ทั้งหมดเป็นเทมเพลตโค้ด ปล่อยการเปลี่ยนแปลงเป็นชุดเล็ก ๆ ที่ย้อนกลับได้ และทบทวน runbook ทุกไตรมาสหลังเกิดเหตุขัดข้อง',
+    question: 'แนวทางนี้สะท้อน pillar ใดมากที่สุด',
+    choices: ['Operational Excellence', 'Reliability', 'Security', 'Performance Efficiency'],
+    correctIndex: 0,
+    explanation:
+      'การทำงานเป็นโค้ด การเปลี่ยนแบบเล็กและย้อนกลับได้ และการขัดเกลาขั้นตอนปฏิบัติงาน ตรงกับหลัก Safely automate where possible, Make frequent small reversible changes และ Refine operations procedures frequently ของ Operational Excellence Reliability จะเน้นว่าระบบยังให้บริการได้และกู้คืนได้ ซึ่งเป็นเป้าหมายต่างกัน',
+    relatedServices: ['cloudformation', 'systems-manager', 'cloudwatch'],
+  },
+  {
+    id: 'cc-wa-performance-vs-reliability',
+    domain: 'Cloud Concepts',
+    scenario:
+      'ผู้ใช้ในเอเชียบ่นว่าเว็บโหลดช้าเพราะเซิร์ฟเวอร์อยู่ที่อเมริกา ทีมจึงวางแผนใช้ CDN และขยายไปหลาย Region เพื่อลด latency',
+    question: 'แผนนี้อยู่ใน pillar ใด',
+    choices: [
+      'Performance Efficiency',
+      'Reliability',
+      'Operational Excellence',
+      'Cost Optimization',
+    ],
+    correctIndex: 0,
+    explanation:
+      'เป้าหมายของโจทย์คือความเร็วและ latency ซึ่งเป็น Performance Efficiency ตรงกับหลัก Go global in minutes ถ้าโจทย์บอกว่าต้องการให้ระบบยังใช้งานได้เมื่อ Region หนึ่งล่ม คำตอบจะเปลี่ยนเป็น Reliability แม้จะใช้เทคนิค multi-Region เหมือนกัน',
+    relatedServices: ['cloudfront', 'global-accelerator', 'route-53'],
+  },
+  {
+    id: 'cc-wa-tool',
+    domain: 'Cloud Concepts',
+    scenario:
+      'ทีมต้องการประเมินว่า workload ที่รันอยู่สอดคล้องกับแนวปฏิบัติที่ดีของ AWS มากน้อยเพียงใด โดยตอบชุดคำถามตาม pillar แล้วได้รายงานความเสี่ยงพร้อมแผนปรับปรุง และไม่ต้องการเสียค่าบริการเพิ่ม',
+    question: 'ควรใช้เครื่องมือใด',
+    choices: [
+      'AWS Well-Architected Tool',
+      'AWS Config',
+      'AWS Artifact',
+      'AWS Systems Manager',
+    ],
+    correctIndex: 0,
+    explanation:
+      'AWS Well-Architected Tool อยู่ใน Management Console ใช้ฟรี ให้ตอบคำถามตาม pillar แล้วออกรายงานความเสี่ยงพร้อมแผนปรับปรุง และเลือก lens เฉพาะทางได้ AWS Config ติดตามการเปลี่ยนแปลงการตั้งค่าและตรวจ compliance ตามกฎที่กำหนด Artifact เป็นที่ดาวน์โหลดรายงาน compliance ของ AWS Systems Manager ใช้จัดการและสั่งงานเครื่องจำนวนมาก',
+    relatedServices: ['trusted-advisor', 'config', 'artifact', 'systems-manager'],
+  },
+  {
+    id: 'cc-wa-mechanical-sympathy',
+    domain: 'Cloud Concepts',
+    scenario:
+      'ในการทบทวนสถาปัตยกรรม ทีมตัดสินใจเลือกชนิดฐานข้อมูลและประเภท storage โดยดูรูปแบบการอ่านเขียนข้อมูลจริงก่อน เพื่อให้เทคโนโลยีที่เลือกตรงกับเป้าหมายของงาน',
+    question: 'แนวคิดนี้ตรงกับ design principle ข้อใด',
+    choices: [
+      'Consider mechanical sympathy ใน Performance Efficiency',
+      'Stop guessing capacity ใน Reliability',
+      'Adopt a consumption model ใน Cost Optimization',
+      'Apply security at all layers ใน Security',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Consider mechanical sympathy คือการเข้าใจวิธีที่บริการคลาวด์ถูกใช้งานแล้วเลือกเทคโนโลยีให้ตรงกับเป้าหมายของ workload เช่นดู data access pattern ก่อนเลือกฐานข้อมูล อยู่ใน Performance Efficiency Stop guessing capacity คือเลิกเดาความจุแล้วปรับตามความต้องการจริงซึ่งอยู่ใน Reliability ส่วนอีกสองข้ออยู่ต่าง pillar และต่างเป้าหมาย',
+    relatedServices: ['dynamodb', 'rds', 'ebs', 's3'],
   },
 
   // ------------------------------------------------- Security & Compliance (8)
@@ -422,7 +512,7 @@ export const quizQuestions: QuizQuestion[] = [
     relatedServices: ['cloudformation', 'cdk', 'systems-manager', 'config'],
   },
 
-  // ------------------------------------------------------ Billing & Support (6)
+  // ----------------------------------------------------- Billing & Support (11)
   {
     id: 'bill-savings-plans',
     domain: 'Billing & Support',
@@ -524,6 +614,81 @@ export const quizQuestions: QuizQuestion[] = [
     explanation:
       'AWS Organizations พร้อม consolidated billing รวมค่าใช้จ่ายทุกบัญชีมาชำระที่ management account ใบเดียว และรวมปริมาณการใช้เพื่อให้ได้ volume discount รวมถึงแชร์สิทธิ์ Reserved Instances และ Savings Plans ข้ามบัญชี การยุบเหลือบัญชีเดียวทำให้เสียการแยกขอบเขตความปลอดภัยระหว่างทีม การซื้อ RI แยกบัญชีไม่ได้ช่วยเรื่องบิลรวมหรือส่วนลดตามปริมาณรวม',
     relatedServices: ['organizations', 'consolidated-billing', 'control-tower', 'savings-plans'],
+  },
+  {
+    id: 'bill-support-business-24x7',
+    domain: 'Billing & Support',
+    scenario:
+      'สตาร์ทอัพเพิ่งย้ายระบบขึ้น production บน AWS ทีมต้องการโทรหา AWS ได้ตลอด 24 ชั่วโมงเมื่อระบบจริงล่ม และอยากได้คำแนะนำจาก Trusted Advisor ครบทุก check เพื่อไล่ปรับต้นทุนและความปลอดภัย งบยังจำกัดจึงไม่ต้องการที่ปรึกษาประจำ',
+    question: 'ควรเลือกแผน AWS Support ใด',
+    choices: ['Business', 'Developer', 'Basic', 'Enterprise'],
+    correctIndex: 0,
+    explanation:
+      'Business เป็นแผนต่ำสุดที่ให้ติดต่อทางโทรศัพท์ แชต และอีเมลได้ 24/7 พร้อมเวลาตอบกลับ 1 ชั่วโมงเมื่อ production ล่ม และเป็นแผนแรกที่ปลดล็อก Trusted Advisor ครบทุก check Developer ตอบทางอีเมลในเวลาทำการเท่านั้นและได้แค่ core checks Basic เปิดเคสทางเทคนิคไม่ได้เลย Enterprise ตอบโจทย์ได้แต่เกินความจำเป็นและแพงกว่ามากเพราะโจทย์บอกว่าไม่ต้องการที่ปรึกษาประจำ',
+    relatedServices: ['support-plans', 'trusted-advisor'],
+  },
+  {
+    id: 'bill-support-onramp',
+    domain: 'Billing & Support',
+    scenario:
+      'บริษัทขนาดกลางเริ่มมี workload สำคัญบน AWS ต้องการเวลาตอบกลับเคสระดับ business-critical ภายใน 30 นาที และอยากเข้าถึง Technical Account Manager เพื่อขอ consultative review แต่ยังจ่ายค่าแผนระดับสูงสุดไม่ไหว',
+    question: 'แผน AWS Support ใดตรงที่สุด',
+    choices: ['Enterprise On-Ramp', 'Business', 'Enterprise', 'Developer'],
+    correctIndex: 0,
+    explanation:
+      'Enterprise On-Ramp ให้เวลาตอบกลับเคส business-critical ภายใน 30 นาที และให้เข้าถึง TAM แบบทีมกลาง (pool of TAMs) พร้อม consultative review ในราคาต่ำกว่า Enterprise Business ไม่มี TAM และไม่ครอบคลุมความรุนแรงระดับ business-critical Enterprise ตอบใน 15 นาทีและให้ TAM ประจำแต่ราคาสูงกว่าที่โจทย์รับได้ Developer ตอบเฉพาะเวลาทำการ',
+    relatedServices: ['support-plans', 'trusted-advisor'],
+  },
+  {
+    id: 'bill-support-basic-limit',
+    domain: 'Billing & Support',
+    scenario:
+      'นักพัฒนาเปิดบัญชี AWS ใหม่ใช้แผน Basic Support แล้วเจอปัญหาการตั้งค่า Lambda จึงอยากเปิดเคสถามวิศวกรของ AWS โดยไม่เสียค่าใช้จ่ายเพิ่ม',
+    question: 'ข้อใดอธิบายสิ่งที่เกิดขึ้นได้ถูกต้อง',
+    choices: [
+      'แผน Basic เปิดเคสได้เฉพาะเรื่องบัญชี การเรียกเก็บเงิน และการขอเพิ่ม service quota ต้องอัปเกรดแผนถ้าต้องการสนับสนุนทางเทคนิค',
+      'แผน Basic เปิดเคสทางเทคนิคได้ไม่จำกัด แต่ตอบช้ากว่าแผนอื่น',
+      'แผน Basic เปิดเคสทางเทคนิคได้ 3 เคสต่อเดือน',
+      'แผน Basic เปิดเคสทางเทคนิคได้เฉพาะผ่านโทรศัพท์',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Basic ใช้ฟรีกับทุกบัญชีแต่ไม่ให้การสนับสนุนทางเทคนิคแบบเปิดเคส สิ่งที่เปิดเคสได้คือเรื่องบัญชี การเรียกเก็บเงิน และการขอเพิ่ม service quota คำถามทางเทคนิคต้องพึ่งเอกสาร whitepaper และ AWS re:Post ถ้าต้องการคุยกับวิศวกรต้องขึ้นไป Developer เป็นอย่างน้อย และไม่มีโควตาเคสทางเทคนิคแบบจำกัดจำนวนในแผน Basic',
+    relatedServices: ['support-plans', 'health-dashboard'],
+  },
+  {
+    id: 'bill-support-trusted-advisor-gate',
+    domain: 'Billing & Support',
+    scenario:
+      'ทีมความปลอดภัยอยากใช้ Trusted Advisor ให้ครบทุก check ทั้งด้าน cost optimization, performance, security, fault tolerance และ service limits ปัจจุบันบัญชีใช้แผน Developer Support แล้วเห็นเพียงบาง check',
+    question: 'ต้องทำอย่างไรจึงจะเห็น check ทั้งหมด',
+    choices: [
+      'อัปเกรดเป็นแผน Business, Enterprise On-Ramp หรือ Enterprise',
+      'เปิดใช้ AWS Config เพิ่มเติมในทุก Region',
+      'ขอสิทธิ์เพิ่มผ่าน IAM policy ให้ผู้ใช้ในบัญชี',
+      'ย้ายบัญชีเข้า AWS Organizations',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Trusted Advisor ครบทุก check เป็นสิทธิ์ที่ผูกกับแผน support ตั้งแต่ Business ขึ้นไป แผน Basic และ Developer เห็นเพียง core checks จึงต้องอัปเกรดแผน ไม่ใช่เรื่องของ IAM permission ที่กำหนดแค่ว่าใครเข้าดูได้ AWS Config ติดตามการเปลี่ยนแปลงการตั้งค่าซึ่งเป็นบริการแยกกัน และการเข้า AWS Organizations ช่วยเรื่องบิลรวมกับนโยบาย ไม่ได้ปลดล็อก check',
+    relatedServices: ['support-plans', 'trusted-advisor', 'config'],
+  },
+  {
+    id: 'bill-support-tam-iem',
+    domain: 'Billing & Support',
+    scenario:
+      'ร้านค้าออนไลน์กำลังเตรียมแคมเปญลดราคาใหญ่ที่คาดว่าจะมีทราฟฟิกพุ่งหลายเท่า ต้องการให้ AWS ช่วยวางแผนรับโหลดและเฝ้าระบบร่วมกันในช่วงเวลานั้น พร้อมมีที่ปรึกษาทางเทคนิคประจำที่รู้จักสถาปัตยกรรมของร้าน',
+    question: 'สิ่งที่โจทย์ต้องการมาจากอะไร',
+    choices: [
+      'Infrastructure Event Management และ Technical Account Manager ประจำ ซึ่งรวมอยู่ในแผน Enterprise',
+      'AWS Trusted Advisor ซึ่งใช้ได้ฟรีกับทุกแผน',
+      'AWS Professional Services ซึ่งรวมอยู่ในแผน Business',
+      'AWS Artifact ซึ่งให้รายงานความพร้อมรับโหลด',
+    ],
+    correctIndex: 0,
+    explanation:
+      'การให้ AWS ช่วยวางแผนและเฝ้าระบบร่วมกันในช่วงอีเวนต์สำคัญคือบริการ Infrastructure Event Management ซึ่งรวมอยู่ในแผน Enterprise (Enterprise On-Ramp ได้ 1 ครั้งต่อปี และ Business ต้องซื้อเพิ่ม) ส่วนที่ปรึกษาประจำคือ designated TAM ที่มีเฉพาะ Enterprise Trusted Advisor ให้คำแนะนำอัตโนมัติแต่ไม่ได้มาเฝ้าอีเวนต์ และไม่ได้ครบทุก check ในทุกแผน Professional Services เป็นบริการที่คิดค่าใช้จ่ายแยก Artifact เป็นที่ดาวน์โหลดรายงาน compliance',
+    relatedServices: ['support-plans', 'trusted-advisor', 'artifact'],
   },
 ]
 
