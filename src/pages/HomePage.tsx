@@ -139,6 +139,25 @@ export function HomePage() {
         </Link>
 
         <Link
+          to="/pricing"
+          aria-label="เข้าหน้าเรียนรู้เรื่องราคาและค่าใช้จ่าย"
+          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-11 w-11 place-items-center rounded-lg bg-emerald-100 text-xl"
+          >
+            💰
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-emerald-600">
+            Pricing
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            4 แท็บในหน้าเดียว: เรียนรู้ ตัวเลขที่ต้องจำ ทายรูปแบบราคาให้ไว และเกมจับคู่ศัพท์เรื่องราคา
+          </p>
+        </Link>
+
+        <Link
           to="/support"
           aria-label="ดูสรุปแผน AWS Support"
           className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"

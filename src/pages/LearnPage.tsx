@@ -98,7 +98,14 @@ export function LearnPage() {
           >
             Cloud Adoption Framework
           </Link>{' '}
-          (6 perspectives, 4 phases, 4 domains) และ{' '}
+          (6 perspectives, 4 phases, 4 domains),{' '}
+          <Link
+            to="/pricing"
+            className="font-semibold text-emerald-700 underline decoration-dotted hover:text-emerald-800"
+          >
+            Pricing &amp; Billing
+          </Link>{' '}
+          (รูปแบบราคา ตัวเลข และเกมจับคู่) และ{' '}
           <Link
             to="/support"
             className="font-semibold text-amber-700 underline decoration-dotted hover:text-amber-800"

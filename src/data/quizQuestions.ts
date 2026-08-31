@@ -512,7 +512,7 @@ export const quizQuestions: QuizQuestion[] = [
     relatedServices: ['cloudformation', 'cdk', 'systems-manager', 'config'],
   },
 
-  // ----------------------------------------------------- Billing & Support (11)
+  // ----------------------------------------------------- Billing & Support (15)
   {
     id: 'bill-savings-plans',
     domain: 'Billing & Support',
@@ -689,6 +689,74 @@ export const quizQuestions: QuizQuestion[] = [
     explanation:
       'การให้ AWS ช่วยวางแผนและเฝ้าระบบร่วมกันในช่วงอีเวนต์สำคัญคือบริการ Infrastructure Event Management ซึ่งรวมอยู่ในแผน Enterprise (Enterprise On-Ramp ได้ 1 ครั้งต่อปี และ Business ต้องซื้อเพิ่ม) ส่วนที่ปรึกษาประจำคือ designated TAM ที่มีเฉพาะ Enterprise Trusted Advisor ให้คำแนะนำอัตโนมัติแต่ไม่ได้มาเฝ้าอีเวนต์ และไม่ได้ครบทุก check ในทุกแผน Professional Services เป็นบริการที่คิดค่าใช้จ่ายแยก Artifact เป็นที่ดาวน์โหลดรายงาน compliance',
     relatedServices: ['support-plans', 'trusted-advisor', 'artifact'],
+  },
+  {
+    id: 'bill-data-transfer',
+    domain: 'Billing & Support',
+    scenario:
+      'ทีมกำลังประมาณค่าใช้จ่ายของเว็บที่ให้ผู้ใช้อัปโหลดรูปเข้ามาเก็บใน S3 แล้วดาวน์โหลดกลับไปดูบ่อยมาก ตอนนี้ประมาณเฉพาะค่าเก็บข้อมูลไว้',
+    question: 'ค่าใช้จ่ายสำคัญที่ทีมยังไม่ได้คิดคืออะไร',
+    choices: [
+      'ค่าส่งข้อมูลออกจาก AWS ไปอินเทอร์เน็ต เพราะข้อมูลเข้าฟรีแต่ข้อมูลออกคิดเงิน',
+      'ค่าส่งข้อมูลเข้า AWS เพราะการอัปโหลดคิดเงินตามปริมาณ',
+      'ค่าธรรมเนียมรายเดือนของ S3 ที่คิดต่อ bucket',
+      'ค่าเปิดใช้ S3 ครั้งแรกต่อ Region',
+    ],
+    correctIndex: 0,
+    explanation:
+      'AWS ไม่คิดค่าข้อมูลที่ส่งเข้ามาจากอินเทอร์เน็ต แต่คิดค่าข้อมูลที่ส่งออกไปอินเทอร์เน็ตแบบขั้นบันได เมื่อผู้ใช้ดาวน์โหลดรูปบ่อยค่านี้จะสูงและเป็นจุดที่คนลืมประมาณบ่อยที่สุด S3 ไม่มีค่าธรรมเนียมต่อ bucket และไม่มีค่าเปิดใช้บริการ',
+    relatedServices: ['s3', 'cloudfront', 'pricing-calculator'],
+  },
+  {
+    id: 'bill-free-tier-types',
+    domain: 'Billing & Support',
+    scenario:
+      'นักพัฒนาเปิดบัญชีมาแล้ว 14 เดือน ยังใช้ Lambda ไม่เกิน 1 ล้าน request ต่อเดือน แต่เพิ่งพบว่า EC2 t3.micro ที่รันอยู่เริ่มถูกคิดเงิน',
+    question: 'ข้อใดอธิบายเรื่องนี้ได้ถูกต้อง',
+    choices: [
+      'โควตา EC2 อยู่ในกลุ่มฟรี 12 เดือนแรกซึ่งหมดอายุแล้ว ส่วนโควตา Lambda อยู่ในกลุ่มฟรีตลอดจึงยังไม่ถูกคิดเงิน',
+      'Free Tier ทุกรายการหมดอายุพร้อมกันที่ 12 เดือน การที่ Lambda ยังฟรีเป็นความผิดพลาดของระบบ',
+      'Free Tier นับ 12 เดือนแยกตามวันที่เริ่มใช้แต่ละบริการ จึงยังเหลือโควตา EC2 อยู่',
+      'ต้องเปิดใช้ AWS Budgets ก่อน Free Tier จึงจะมีผล',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Free Tier มีสามแบบ คือฟรี 12 เดือนแรกนับจากวันเปิดบัญชี ฟรีตลอดแบบมีเพดานต่อเดือน และทดลองใช้ระยะสั้น โควตา EC2 750 ชั่วโมงอยู่ในกลุ่ม 12 เดือน ส่วนโควตา Lambda 1 ล้าน request ต่อเดือนอยู่ในกลุ่มฟรีตลอด การนับ 12 เดือนยึดวันเปิดบัญชี ไม่ใช่วันที่เริ่มใช้แต่ละบริการ และ Budgets เป็นเครื่องมือเตือนงบ ไม่เกี่ยวกับการมีผลของ Free Tier',
+    relatedServices: ['free-tier', 'ec2', 'lambda'],
+  },
+  {
+    id: 'bill-ri-vs-savings-plans',
+    domain: 'Billing & Support',
+    scenario:
+      'องค์กรรัน workload คงที่บน Fargate และ Lambda เป็นหลัก และต้องการส่วนลดจากการคอมมิตค่าใช้จ่ายเป็นเวลา 3 ปี',
+    question: 'ควรเลือกอะไร',
+    choices: [
+      'Compute Savings Plans เพราะครอบคลุม Fargate และ Lambda ด้วย',
+      'Reserved Instances เพราะให้ส่วนลดสูงกว่าทุกกรณี',
+      'Spot Instances เพราะถูกที่สุด',
+      'Dedicated Hosts เพราะคอมมิตระยะยาวได้',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Reserved Instances ใช้กับ EC2 และบริการที่มี instance เป็นหน่วย ไม่ครอบคลุม Fargate หรือ Lambda ส่วน Compute Savings Plans คอมมิตเป็นเงินต่อชั่วโมงและลดราคาให้ทั้ง EC2, Fargate และ Lambda ได้ถึง 72% Spot ไม่เหมาะเพราะถูกเรียกคืนได้และไม่ใช่การคอมมิตระยะยาว Dedicated Hosts เป็นเรื่องการแยกฮาร์ดแวร์ ไม่ใช่ทางเลือกที่ตอบโจทย์นี้',
+    relatedServices: ['savings-plans', 'reserved-instances', 'fargate', 'lambda'],
+  },
+  {
+    id: 'bill-ebs-provisioned',
+    domain: 'Billing & Support',
+    scenario:
+      'ทีมหยุด (stop) EC2 instance ไว้ทั้งเดือนเพื่อประหยัด แต่บิลยังมีค่าใช้จ่ายก้อนหนึ่งเข้ามาทุกวัน',
+    question: 'ค่าใช้จ่ายที่ยังเกิดขึ้นมาจากอะไร',
+    choices: [
+      'EBS volume ที่ยังผูกกับ instance เพราะคิดตามขนาดที่ provision ไว้ ไม่ใช่ตามการใช้งาน',
+      'ค่า instance ของ EC2 ที่ยังคิดครึ่งราคาเมื่อหยุดเครื่อง',
+      'ค่า Elastic IP ที่ผูกกับ instance ซึ่งฟรีเสมอ',
+      'ค่าธรรมเนียมการหยุดเครื่องที่ AWS คิดต่อครั้ง',
+    ],
+    correctIndex: 0,
+    explanation:
+      'เมื่อหยุด instance AWS จะไม่คิดค่า instance แต่ EBS volume ที่ติดอยู่ยังคิดเงินตามขนาดที่ provision ไว้ต่อไป การจะหยุดค่านี้ต้องลบ volume หรือทำ snapshot เก็บไว้แล้วลบ ส่วน Elastic IP ที่ไม่ได้ใช้งานกลับมีค่าใช้จ่าย และไม่มีค่าธรรมเนียมการหยุดเครื่อง',
+    relatedServices: ['ebs', 'ec2', 'cost-explorer'],
   },
 ]
 

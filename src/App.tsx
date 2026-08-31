@@ -8,6 +8,7 @@ import { CustomMatchPage } from './pages/CustomMatchPage'
 import { HomePage } from './pages/HomePage'
 import { LearnPage } from './pages/LearnPage'
 import { MatchGamePage } from './pages/MatchGamePage'
+import { PricingPage } from './pages/PricingPage'
 import { QuizPage } from './pages/QuizPage'
 import { SupportPlanPage } from './pages/SupportPlanPage'
 import { WellArchitectedPage } from './pages/WellArchitectedPage'
@@ -26,6 +27,7 @@ function AppShell() {
           <Route path="/learn" element={<LearnPage />} />
           <Route path="/well-architected" element={<WellArchitectedPage />} />
           <Route path="/caf" element={<CafPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/support" element={<SupportPlanPage />} />
           <Route path="/flashcards" element={<FlashCardPage />} />
           <Route path="/quiz" element={<QuizPage />} />

@@ -10,6 +10,7 @@ const LINKS = [
   { to: '/learn', label: 'เรียนรู้' },
   { to: '/well-architected', label: 'Well-Architected' },
   { to: '/caf', label: 'CAF' },
+  { to: '/pricing', label: 'Pricing' },
   { to: '/support', label: 'Support Plans' },
   { to: '/flashcards', label: 'Flash Cards' },
   { to: '/quiz', label: 'ควิซ' },
