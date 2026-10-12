@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { CATEGORY_LABELS_TH, categoryCounts } from '../../data/awsServices'
+import { useBonusRound } from '../../hooks/useBonusRound'
 import { formatSeconds, useMatchGame } from '../../hooks/useMatchGame'
 import { useProgress } from '../../hooks/useProgress'
 import type { AWSService, CategoryFilterValue } from '../../types'
 import { CATEGORIES, MATCH_MODES, MATCH_PAIR_COUNT } from '../../types'
+import { matchPool, remainingInCycle } from '../../utils/matchPicker'
 import { ANONYMOUS_NAME, MAX_PLAYER_NAME_LENGTH } from '../../utils/storage'
 import { Timer } from '../ui/Timer'
+import { BonusRound } from './BonusRound'
 import { MatchCard } from './MatchCard'
 import { MatchResult } from './MatchResult'
 import { MODE_META } from './matchLabels'
@@ -18,6 +21,7 @@ interface MatchGameProps {
 /** Mode picker, playable board, and end-of-game summary. */
 export function MatchGame({ services, onBackHome }: MatchGameProps) {
   const {
+    progress,
     bestTimeFor,
     bestScoreFor,
     playerName,
@@ -35,12 +39,34 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
     rank,
     notice,
     roundServices,
+    cycle,
     startGame,
     selectCard,
     resetGame,
   } = useMatchGame({ services })
 
   const [category, setCategory] = useState<CategoryFilterValue>('all')
+  const bonus = useBonusRound(services)
+
+  // Deck progress for the chosen category, shown before the first board.
+  const { pool: setupPool } = matchPool(services, MATCH_PAIR_COUNT, category)
+  const setupRemaining = remainingInCycle(setupPool, progress.matchGame.recentIds)
+
+  if (hasStarted && bonus.state.status !== 'idle') {
+    return (
+      <BonusRound
+        bonus={bonus}
+        onNextRound={() => {
+          bonus.exit()
+          startGame(state.mode, category)
+        }}
+        onChangeMode={() => {
+          bonus.exit()
+          resetGame()
+        }}
+      />
+    )
+  }
 
   if (!hasStarted) {
     return (
@@ -93,8 +119,11 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
           <h2 className="text-lg font-bold text-slate-900">3. เลือกโหมดเพื่อเริ่มเล่น</h2>
           <p className="mt-1 text-sm text-slate-500">
             กระดานละ {MATCH_PAIR_COUNT} คู่ · {MATCH_PAIR_COUNT * 2} การ์ด
-            คำที่เพิ่งเล่นไปจะไม่ถูกสุ่มซ้ำ คำที่ติดดาว ({summary.starredCount} คำ)
-            หรือจำไม่ได้จะถูกสุ่มมาบ่อยขึ้น
+            ระบบสุ่มแบบกองไพ่: คำที่เล่นไปแล้วจะไม่กลับมาจนกว่าจะเล่นครบทุกคำ คำที่ติดดาว ({summary.starredCount} คำ)
+            หรือจำไม่ได้จะถูกหยิบมาก่อน
+          </p>
+          <p className="mt-2 w-fit rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+            กองนี้เหลือ {setupRemaining}/{setupPool.length} คำที่ยังไม่ได้เล่น
           </p>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -169,6 +198,15 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
             {state.matchedPairs.length}/{pairCount}
           </strong>
         </p>
+        {cycle !== null && (
+          <p className="text-sm text-slate-500">
+            เหลือในกอง{' '}
+            <strong className="tabular-nums text-slate-700">
+              {cycle.remaining}/{cycle.poolSize}
+            </strong>{' '}
+            คำ
+          </p>
+        )}
 
         <button
           type="button"
@@ -210,6 +248,7 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
           roundServices={roundServices}
           mistakes={state.mistakes}
           onPlayAgain={() => startGame(state.mode, category)}
+          onBonus={() => bonus.start(state.mistakes)}
           onBackHome={onBackHome}
         />
       )}

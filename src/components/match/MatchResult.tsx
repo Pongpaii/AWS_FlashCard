@@ -1,6 +1,8 @@
 import { formatSeconds } from '../../hooks/useMatchGame'
 import type { AWSService, LeaderboardEntry, MatchMode, StarRating } from '../../types'
+import { BONUS_PAIR_COUNT } from '../../utils/matchPicker'
 import { Leaderboard } from '../ui/Leaderboard'
+import { BonusRules } from './BonusRound'
 import { MODE_META } from './matchLabels'
 import { RoundReview } from './RoundReview'
 
@@ -18,6 +20,8 @@ interface MatchResultProps {
   roundServices: readonly AWSService[]
   mistakes: Readonly<Record<string, number>>
   onPlayAgain: () => void
+  /** Starts the Bonus Time round for this result. */
+  onBonus: () => void
   onBackHome: () => void
 }
 
@@ -49,6 +53,7 @@ export function MatchResult({
   roundServices,
   mistakes,
   onPlayAgain,
+  onBonus,
   onBackHome,
 }: MatchResultProps) {
   const headline = rankHeadline(rank)
@@ -93,6 +98,25 @@ export function MatchResult({
       </dl>
 
       <RoundReview services={roundServices} mode={mode} mistakes={mistakes} />
+
+      <section className="mt-7 rounded-xl bg-slate-900 p-5 text-white" aria-labelledby="bonus-offer">
+        <h3 id="bonus-offer" className="text-lg font-black text-amber-300">
+          ⚡ Bonus Time ปลดล็อกแล้ว!
+        </h3>
+        <p className="mt-1 text-sm text-slate-300">
+          ท้าทายด้วย {BONUS_PAIR_COUNT} คำที่ยากที่สุดของคุณ แข่งกับเวลา
+        </p>
+        <div className="mx-auto max-w-sm text-slate-200 [&_li]:text-slate-200">
+          <BonusRules />
+        </div>
+        <button
+          type="button"
+          onClick={onBonus}
+          className="mt-4 rounded-lg bg-amber-400 px-5 py-2.5 text-sm font-black text-slate-900 transition-colors hover:bg-amber-300"
+        >
+          เล่น Bonus Time
+        </button>
+      </section>
 
       <div className="mt-7 border-t border-slate-200 pt-6 text-left">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">

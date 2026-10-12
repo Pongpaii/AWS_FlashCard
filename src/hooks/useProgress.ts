@@ -7,7 +7,6 @@ import type {
   StarRating,
   UserProgress,
 } from '../types'
-import { pushRecentIds } from '../utils/matchPicker'
 import {
   MAX_RECENT_IDS,
   calculateStreak,
@@ -61,8 +60,10 @@ export interface UseProgressResult {
   starredSet: ReadonlySet<string>
   isStarred: (serviceId: string) => boolean
   toggleStar: (serviceId: string) => void
-  /** Remembers the services just dealt so the next board avoids them. */
-  recordDealt: (serviceIds: readonly string[]) => void
+  /** Stores the dealt-this-cycle list returned by the picker. */
+  recordDealt: (dealtIds: readonly string[]) => void
+  /** Saves a Bonus Time score; returns true when it is a new best. */
+  recordBonusScore: (score: number) => boolean
   /** Stores the outcome of a finished Match Game. */
   recordMatchResult: (mode: MatchMode, seconds: number, attempts: number) => void
   /** Stores the outcome of a finished scenario quiz. */
@@ -202,14 +203,34 @@ export function useProgressState(): UseProgressResult {
   )
 
   const recordDealt = useCallback(
-    (serviceIds: readonly string[]) => {
+    (dealtIds: readonly string[]) => {
       commit((current) => ({
         ...current,
         matchGame: {
           ...current.matchGame,
-          recentIds: pushRecentIds(current.matchGame.recentIds, serviceIds, MAX_RECENT_IDS),
+          recentIds: [...new Set(dealtIds)]
+            .filter((id) => SERVICE_IDS.has(id))
+            .slice(0, MAX_RECENT_IDS),
         },
       }))
+    },
+    [commit],
+  )
+
+  const recordBonusScore = useCallback(
+    (score: number): boolean => {
+      const safe = Math.max(0, Math.round(score))
+      const isRecord = safe > progressRef.current.matchGame.bonusBest
+      if (isRecord) {
+        commit((current) => ({
+          ...current,
+          matchGame: {
+            ...current.matchGame,
+            bonusBest: Math.max(current.matchGame.bonusBest, safe),
+          },
+        }))
+      }
+      return isRecord
     },
     [commit],
   )
@@ -362,6 +383,7 @@ export function useProgressState(): UseProgressResult {
     isStarred,
     toggleStar,
     recordDealt,
+    recordBonusScore,
     recordMatchResult,
     recordQuizResult,
     submitScore,

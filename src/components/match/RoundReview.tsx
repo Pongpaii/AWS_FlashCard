@@ -42,7 +42,7 @@ export function RoundReview({ services, mode, mistakes }: RoundReviewProps) {
       </div>
       <p className="mb-3 text-xs text-slate-500">
         กด ☆ เพื่อติดดาวคำที่อยากเน้น และเลือกระดับความจำ คำที่ติดดาวหรือจำไม่ได้จะถูกสุ่มมาบ่อยขึ้น
-        ส่วนคำที่เพิ่งเล่นไปจะไม่ถูกสุ่มซ้ำในรอบถัด ๆ ไป
+        ส่วนคำที่เล่นไปแล้วจะไม่กลับมาจนกว่าจะเล่นครบทั้งกอง
       </p>
 
       <ul className="flex flex-col gap-2">

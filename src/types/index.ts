@@ -147,10 +147,12 @@ export interface MatchGameProgress {
   bestScore: Record<string, number>
   lastPlayDate: string
   /**
-   * Service ids dealt in the most recent boards, newest first. The next board
-   * avoids them so consecutive rounds do not repeat words.
+   * Service ids already dealt in the current cycle, newest first. A word is not
+   * dealt again until every word of the pool has been dealt once.
    */
   recentIds: string[]
+  /** Highest Bonus Time score; 0 when never played. */
+  bonusBest: number
 }
 
 /** The four CLF-C02 exam domains, used to group and filter quiz questions. */

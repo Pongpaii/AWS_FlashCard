@@ -2,7 +2,7 @@ import type { AWSService, CategoryFilterValue, MasteryLevel, RandomFn } from '..
 
 /** What the picker needs to know about the learner. */
 export interface PickContext {
-  /** Recently dealt ids, newest first. Avoided whenever the pool allows. */
+  /** Ids already dealt in the current cycle, newest first. Not dealt again until the cycle ends. */
   recentIds: readonly string[]
   starred: ReadonlySet<string>
   /** Mastery per service id; missing means "never marked". */
@@ -51,14 +51,46 @@ export function weightedSample<T>(
     .map((entry) => entry.item)
 }
 
+/** The services a board draws from: the category, or everything when it is too small. */
+export function matchPool(
+  services: readonly AWSService[],
+  count: number,
+  category: CategoryFilterValue,
+): { pool: readonly AWSService[]; usedFallback: boolean } {
+  const inCategory =
+    category === 'all' ? services : services.filter((service) => service.category === category)
+  const usedFallback = inCategory.length < count
+  return { pool: usedFallback ? services : inCategory, usedFallback }
+}
+
+/** How many words of the pool have not been dealt yet in the current cycle. */
+export function remainingInCycle(pool: readonly AWSService[], dealtIds: readonly string[]): number {
+  const dealt = new Set(dealtIds)
+  return pool.filter((service) => !dealt.has(service.id)).length
+}
+
+export interface MatchPick {
+  picked: AWSService[]
+  usedFallback: boolean
+  /** True when the pool ran out and a new cycle started with this board. */
+  cycleRestarted: boolean
+  /** The dealt list to persist after this board (newest first). */
+  nextDealtIds: string[]
+  /** Words of the pool still undealt after this board. */
+  remaining: number
+  poolSize: number
+}
+
 /**
- * Chooses the services for one board.
+ * Chooses the services for one board, deck style: a word is not dealt again
+ * until every word of the pool has been dealt once in the current cycle.
  *
  * 1. Restrict to the category, or fall back to every service when the category
  *    is too small for a full board.
- * 2. Draw from services NOT dealt recently, weighted so starred and poorly
- *    remembered words come up more often.
- * 3. Only when that is not enough, top up with the least recently dealt ones.
+ * 2. Draw from words not yet dealt this cycle, weighted so starred and poorly
+ *    remembered words come up earlier in the cycle.
+ * 3. When fewer undealt words remain than a board needs, deal all of them,
+ *    start a new cycle, and top up from the rest of the pool.
  */
 export function pickMatchServices(
   services: readonly AWSService[],
@@ -66,31 +98,107 @@ export function pickMatchServices(
   category: CategoryFilterValue,
   context: PickContext,
   rng: RandomFn = Math.random,
-): { picked: AWSService[]; usedFallback: boolean } {
-  if (count <= 0) return { picked: [], usedFallback: false }
+): MatchPick {
+  const { pool, usedFallback } = matchPool(services, count, category)
+  const dealtIds = [...context.recentIds]
 
-  const inCategory =
-    category === 'all' ? services : services.filter((service) => service.category === category)
-  const usedFallback = inCategory.length < count
-  const pool = usedFallback ? services : inCategory
-
-  const recentRank = new Map<string, number>()
-  context.recentIds.forEach((id, index) => {
-    if (!recentRank.has(id)) recentRank.set(id, index)
-  })
-
-  const fresh = pool.filter((service) => !recentRank.has(service.id))
-  const picked = weightedSample(fresh, count, (service) => weightFor(service.id, context), rng)
-
-  if (picked.length < count) {
-    // Oldest first: the larger the index in recentIds, the longer ago it was dealt.
-    const stale = pool
-      .filter((service) => recentRank.has(service.id))
-      .sort((a, b) => (recentRank.get(b.id) ?? 0) - (recentRank.get(a.id) ?? 0))
-    picked.push(...stale.slice(0, count - picked.length))
+  if (count <= 0) {
+    return {
+      picked: [],
+      usedFallback,
+      cycleRestarted: false,
+      nextDealtIds: dealtIds,
+      remaining: remainingInCycle(pool, dealtIds),
+      poolSize: pool.length,
+    }
   }
 
-  return { picked, usedFallback }
+  const weight = (service: AWSService) => weightFor(service.id, context)
+  const dealt = new Set(dealtIds)
+  const fresh = pool.filter((service) => !dealt.has(service.id))
+
+  if (fresh.length >= count) {
+    const picked = weightedSample(fresh, count, weight, rng)
+    const nextDealtIds = pushRecentIds(dealtIds, picked.map((service) => service.id), Infinity)
+    return {
+      picked,
+      usedFallback,
+      cycleRestarted: false,
+      nextDealtIds,
+      remaining: fresh.length - count,
+      poolSize: pool.length,
+    }
+  }
+
+  // End of the cycle: the last undealt words, plus the start of a new cycle.
+  const freshIds = new Set(fresh.map((service) => service.id))
+  const topUp = weightedSample(
+    pool.filter((service) => !freshIds.has(service.id)),
+    count - fresh.length,
+    weight,
+    rng,
+  )
+  const picked = [...weightedSample(fresh, fresh.length, weight, rng), ...topUp]
+
+  // Forget this pool's old cycle; words outside it (other categories) keep theirs.
+  const poolIds = new Set(pool.map((service) => service.id))
+  const nextDealtIds = pushRecentIds(
+    dealtIds.filter((id) => !poolIds.has(id)),
+    topUp.map((service) => service.id),
+    Infinity,
+  )
+
+  return {
+    picked,
+    usedFallback,
+    cycleRestarted: true,
+    nextDealtIds,
+    remaining: pool.length - topUp.length,
+    poolSize: pool.length,
+  }
+}
+
+/** Bonus Time: fewer pairs, a ticking clock, and only the hardest words. */
+export const BONUS_PAIR_COUNT = 6
+export const BONUS_START_SECONDS = 40
+/** Seconds added for every correct pair. */
+export const BONUS_TIME_GAIN = 3
+/** Seconds removed for every wrong pick. */
+export const BONUS_TIME_PENALTY = 5
+/** Highest combo multiplier. */
+export const BONUS_MAX_COMBO = 5
+
+/**
+ * Chooses the hardest words for a Bonus Time board: words missed in the round
+ * just played first, then the forgotten / starred ones, random among equals.
+ */
+export function pickBonusServices(
+  services: readonly AWSService[],
+  count: number,
+  roundMistakes: Readonly<Record<string, number>>,
+  context: Omit<PickContext, 'recentIds'>,
+  rng: RandomFn = Math.random,
+): AWSService[] {
+  const scoreContext: PickContext = { ...context, recentIds: [] }
+  return services
+    .map((service) => ({
+      service,
+      score:
+        (roundMistakes[service.id] ?? 0) * 100 + weightFor(service.id, scoreContext) * 10 + rng(),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(0, count))
+    .map((entry) => entry.service)
+}
+
+/** Points for a correct pair at a given combo (1 = first in a row). */
+export function bonusPairPoints(combo: number): number {
+  return 100 * Math.min(Math.max(1, combo), BONUS_MAX_COMBO)
+}
+
+/** Points for clearing the board with time left. */
+export function bonusTimePoints(secondsLeft: number): number {
+  return Math.max(0, Math.floor(secondsLeft)) * 20
 }
 
 /** Prepends a board's ids to the recent list, de-duplicated and capped. */

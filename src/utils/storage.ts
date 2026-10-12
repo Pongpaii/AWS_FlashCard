@@ -7,8 +7,11 @@ export const STORAGE_KEY = 'aws-flashcards-progress'
 /** How many runs the leaderboard keeps per mode. */
 export const MAX_LEADERBOARD_PER_MODE = 10
 
-/** How many recently dealt service ids are remembered (3 boards of 8). */
-export const MAX_RECENT_IDS = 24
+/**
+ * Safety cap on the dealt-this-cycle list. The list naturally stays below the
+ * dataset size; this only guards against a tampered stored value.
+ */
+export const MAX_RECENT_IDS = 1000
 
 /**
  * Before modes existed the game had easy/medium/hard. Hard used today's board
@@ -39,6 +42,7 @@ export const DEFAULT_PROGRESS: UserProgress = {
     bestScore: {},
     lastPlayDate: '',
     recentIds: [],
+    bonusBest: 0,
   },
   quiz: {
     quizzesTaken: 0,
@@ -310,6 +314,7 @@ export function normalizeProgress(raw: unknown, validIds?: ReadonlySet<string>):
       bestScore: toModeRecordMap(mg.bestScore),
       lastPlayDate: toIsoDate(mg.lastPlayDate),
       recentIds: keepKnownIds(toStringArray(mg.recentIds)).slice(0, MAX_RECENT_IDS),
+      bonusBest: toCount(mg.bonusBest),
     },
     quiz: {
       quizzesTaken: toCount(qz.quizzesTaken),

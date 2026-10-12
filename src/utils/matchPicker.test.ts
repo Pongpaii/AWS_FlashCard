@@ -5,8 +5,12 @@ import { buildMatchCards } from '../hooks/useMatchGame'
 import type { MasteryLevel } from '../types'
 import { MATCH_PAIR_COUNT } from '../types'
 import {
+  BONUS_MAX_COMBO,
+  BONUS_PAIR_COUNT,
+  bonusPairPoints,
+  bonusTimePoints,
+  pickBonusServices,
   pickMatchServices,
-  pushRecentIds,
   suggestMastery,
   weightFor,
   type PickContext,
@@ -63,21 +67,63 @@ describe('pickMatchServices', () => {
     expect(new Set(picked.map((service) => service.id)).size).toBe(MATCH_PAIR_COUNT)
   })
 
-  it('never repeats words from recent boards when the pool is big enough', () => {
+  it('deals every word once before any word repeats (deck cycle)', () => {
     let recentIds: string[] = []
     const rng = seeded(3)
-    for (let round = 0; round < 30; round += 1) {
-      const { picked } = pickMatchServices(
+    const total = awsServices.length
+    const fullBoards = Math.floor(total / MATCH_PAIR_COUNT)
+    const seen = new Set<string>()
+
+    for (let round = 0; round < fullBoards; round += 1) {
+      const pick = pickMatchServices(
         awsServices,
         MATCH_PAIR_COUNT,
         'all',
         { ...emptyContext(), recentIds },
         rng,
       )
-      const ids = picked.map((service) => service.id)
-      expect(ids.filter((id) => recentIds.includes(id))).toEqual([])
-      recentIds = pushRecentIds(recentIds, ids, 24)
+      for (const service of pick.picked) {
+        expect(seen.has(service.id)).toBe(false)
+        seen.add(service.id)
+      }
+      expect(pick.cycleRestarted).toBe(false)
+      expect(pick.remaining).toBe(total - seen.size)
+      recentIds = pick.nextDealtIds
     }
+
+    // The board that crosses the end of the deck deals the leftovers first,
+    // then starts a new cycle with words not on the same board.
+    const leftover = total - seen.size
+    const crossing = pickMatchServices(
+      awsServices,
+      MATCH_PAIR_COUNT,
+      'all',
+      { ...emptyContext(), recentIds },
+      rng,
+    )
+    const ids = crossing.picked.map((service) => service.id)
+    expect(new Set(ids).size).toBe(MATCH_PAIR_COUNT)
+    expect(ids.filter((id) => !seen.has(id))).toHaveLength(leftover)
+    expect(crossing.cycleRestarted).toBe(leftover < MATCH_PAIR_COUNT)
+    if (crossing.cycleRestarted) {
+      expect(crossing.nextDealtIds).toHaveLength(MATCH_PAIR_COUNT - leftover)
+      expect(crossing.remaining).toBe(total - (MATCH_PAIR_COUNT - leftover))
+    }
+  })
+
+  it('keeps other categories in their cycle when one category restarts', () => {
+    const compute = awsServices.filter((service) => service.category === 'Compute')
+    const outsider = awsServices.find((service) => service.category !== 'Compute')!
+    const recentIds = [...compute.map((service) => service.id), outsider.id]
+    const pick = pickMatchServices(
+      awsServices,
+      MATCH_PAIR_COUNT,
+      'Compute',
+      { ...emptyContext(), recentIds },
+      seeded(9),
+    )
+    expect(pick.cycleRestarted).toBe(true)
+    expect(pick.nextDealtIds).toContain(outsider.id)
   })
 
   it('tops up with the oldest recent words when the category is small', () => {
@@ -118,6 +164,31 @@ describe('pickMatchServices', () => {
     expect(counts[starredId]).toBeGreaterThan(counts[badId])
     expect(counts[badId]).toBeGreaterThan(counts[goodId])
     expect(weightFor(starredId, context)).toBeGreaterThan(weightFor(goodId, context))
+  })
+})
+
+describe('Bonus Time', () => {
+  it('picks the words missed this round first, then forgotten ones', () => {
+    const missed = awsServices[5].id
+    const bad = awsServices[15].id
+    const picked = pickBonusServices(
+      awsServices,
+      BONUS_PAIR_COUNT,
+      { [missed]: 2 },
+      { starred: new Set(), mastery: new Map<string, MasteryLevel>([[bad, 'bad']]) },
+      seeded(7),
+    )
+    expect(picked).toHaveLength(BONUS_PAIR_COUNT)
+    expect(picked[0].id).toBe(missed)
+    expect(picked[1].id).toBe(bad)
+  })
+
+  it('scores combos up to the cap and rewards time left', () => {
+    expect(bonusPairPoints(1)).toBe(100)
+    expect(bonusPairPoints(3)).toBe(300)
+    expect(bonusPairPoints(99)).toBe(100 * BONUS_MAX_COMBO)
+    expect(bonusTimePoints(12.7)).toBe(240)
+    expect(bonusTimePoints(-3)).toBe(0)
   })
 })
 

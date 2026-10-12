@@ -93,6 +93,13 @@ export interface UseMatchGameOptions {
   services: readonly AWSService[]
 }
 
+/** How far through the deck the player is. */
+export interface CycleInfo {
+  /** Words not dealt yet in this cycle. */
+  remaining: number
+  poolSize: number
+}
+
 export interface UseMatchGameResult {
   state: MatchGameState
   pairCount: number
@@ -107,6 +114,8 @@ export interface UseMatchGameResult {
   notice: string | null
   /** Services on the current board, in the order they were picked. */
   roundServices: AWSService[]
+  /** Deck progress after the current board; null before the first board. */
+  cycle: CycleInfo | null
   startGame: (mode: MatchMode, category?: CategoryFilterValue) => void
   /** Selects a tile, or deselects it when it is already selected. */
   selectCard: (cardId: string) => void
@@ -130,6 +139,7 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
   const [rank, setRank] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [roundServices, setRoundServices] = useState<AWSService[]>([])
+  const [cycle, setCycle] = useState<CycleInfo | null>(null)
 
   // Read inside callbacks/effects without re-creating them on every progress change.
   const playerNameRef = useRef(playerName)
@@ -159,16 +169,21 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
       recordedRef.current = false
 
       const context = pickContextRef.current
-      const { picked, usedFallback } = pickMatchServices(services, MATCH_PAIR_COUNT, category, {
+      const pick = pickMatchServices(services, MATCH_PAIR_COUNT, category, {
         recentIds: context.recentIds,
         starred: context.starredSet,
         mastery: context.masteryMap,
       })
-      recordDealt(picked.map((service) => service.id))
+      const { picked, usedFallback } = pick
+      recordDealt(pick.nextDealtIds)
 
-      setNotice(
-        usedFallback ? 'หมวดนี้มีการ์ดไม่พอสำหรับ 8 คู่ ระบบสุ่มจากทุกหมวดให้แทน' : null,
-      )
+      const notices: string[] = []
+      if (usedFallback) notices.push('หมวดนี้มีการ์ดไม่พอสำหรับ 8 คู่ ระบบสุ่มจากทุกหมวดให้แทน')
+      if (pick.cycleRestarted) {
+        notices.push(`เล่นครบทั้ง ${pick.poolSize} คำแล้ว 🎉 เริ่มสับกองใหม่ คำจะเริ่มวนกลับมาอีกครั้ง`)
+      }
+      setNotice(notices.length > 0 ? notices.join(' · ') : null)
+      setCycle({ remaining: pick.remaining, poolSize: pick.poolSize })
       setFinalSeconds(null)
       setRank(null)
       setHasStarted(true)
@@ -295,6 +310,7 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
     rank,
     notice,
     roundServices,
+    cycle,
     startGame,
     selectCard,
     resetGame,
