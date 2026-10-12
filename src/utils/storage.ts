@@ -1,11 +1,21 @@
-import type { Difficulty, LeaderboardEntry, StarRating, UserProgress } from '../types'
-import { DIFFICULTIES } from '../types'
+import type { LeaderboardEntry, MatchMode, StarRating, UserProgress } from '../types'
+import { MATCH_MODES } from '../types'
 
 /** The single localStorage key holding the whole progress document. */
 export const STORAGE_KEY = 'aws-flashcards-progress'
 
-/** How many runs the leaderboard keeps per difficulty. */
-export const MAX_LEADERBOARD_PER_DIFFICULTY = 10
+/** How many runs the leaderboard keeps per mode. */
+export const MAX_LEADERBOARD_PER_MODE = 10
+
+/** How many recently dealt service ids are remembered (3 boards of 8). */
+export const MAX_RECENT_IDS = 24
+
+/**
+ * Before modes existed the game had easy/medium/hard. Hard used today's board
+ * size with descriptions, so its records carry over as `meaning`; the smaller
+ * boards are not comparable and are dropped.
+ */
+const LEGACY_DIFFICULTY_TO_MODE: Record<string, MatchMode> = { hard: 'meaning' }
 
 /** Longest accepted player name. */
 export const MAX_PLAYER_NAME_LENGTH = 20
@@ -18,6 +28,7 @@ export const DEFAULT_PROGRESS: UserProgress = {
   flashCards: {
     totalStudied: 0,
     mastered: [],
+    learning: [],
     reviewing: [],
     lastStudyDate: '',
     streak: 0,
@@ -27,6 +38,7 @@ export const DEFAULT_PROGRESS: UserProgress = {
     bestTime: {},
     bestScore: {},
     lastPlayDate: '',
+    recentIds: [],
   },
   quiz: {
     quizzesTaken: 0,
@@ -37,16 +49,18 @@ export const DEFAULT_PROGRESS: UserProgress = {
   },
   playerName: '',
   leaderboard: [],
+  starred: [],
 }
 
 /** Deep copy of DEFAULT_PROGRESS so callers can never mutate the shared constant. */
 export function defaultProgress(): UserProgress {
   return {
-    flashCards: { ...DEFAULT_PROGRESS.flashCards, mastered: [], reviewing: [] },
-    matchGame: { ...DEFAULT_PROGRESS.matchGame, bestTime: {}, bestScore: {} },
+    flashCards: { ...DEFAULT_PROGRESS.flashCards, mastered: [], learning: [], reviewing: [] },
+    matchGame: { ...DEFAULT_PROGRESS.matchGame, bestTime: {}, bestScore: {}, recentIds: [] },
     quiz: { ...DEFAULT_PROGRESS.quiz },
     playerName: '',
     leaderboard: [],
+    starred: [],
   }
 }
 
@@ -68,9 +82,9 @@ export function compareLeaderboardEntries(a: LeaderboardEntry, b: LeaderboardEnt
   return a.playedAt.localeCompare(b.playedAt)
 }
 
-/** Keeps only the top runs of a single difficulty, sorted best first. */
+/** Keeps only the top runs of a single mode, sorted best first. */
 function topEntries(entries: LeaderboardEntry[]): LeaderboardEntry[] {
-  return [...entries].sort(compareLeaderboardEntries).slice(0, MAX_LEADERBOARD_PER_DIFFICULTY)
+  return [...entries].sort(compareLeaderboardEntries).slice(0, MAX_LEADERBOARD_PER_MODE)
 }
 
 /**
@@ -81,38 +95,45 @@ export function insertLeaderboardEntry(
   leaderboard: readonly LeaderboardEntry[],
   entry: LeaderboardEntry,
 ): { leaderboard: LeaderboardEntry[]; rank: number | null } {
-  const others = leaderboard.filter((item) => item.difficulty !== entry.difficulty)
-  const sameDifficulty = topEntries([
-    ...leaderboard.filter((item) => item.difficulty === entry.difficulty),
-    entry,
-  ])
+  const others = leaderboard.filter((item) => item.mode !== entry.mode)
+  const sameMode = topEntries([...leaderboard.filter((item) => item.mode === entry.mode), entry])
 
-  const index = sameDifficulty.findIndex((item) => item.id === entry.id)
+  const index = sameMode.findIndex((item) => item.id === entry.id)
 
   return {
-    leaderboard: [...others, ...sameDifficulty],
+    leaderboard: [...others, ...sameMode],
     rank: index === -1 ? null : index + 1,
   }
 }
 
-/** Every run of one difficulty, best first. */
+/** Every run of one mode, best first. */
 export function leaderboardFor(
   leaderboard: readonly LeaderboardEntry[],
-  difficulty: Difficulty,
+  mode: MatchMode,
 ): LeaderboardEntry[] {
-  return leaderboard
-    .filter((entry) => entry.difficulty === difficulty)
-    .sort(compareLeaderboardEntries)
+  return leaderboard.filter((entry) => entry.mode === mode).sort(compareLeaderboardEntries)
 }
 
-const DIFFICULTY_SET = new Set<string>(DIFFICULTIES)
+const MODE_SET = new Set<string>(MATCH_MODES)
+
+/** Reads the mode of a stored entry, migrating the legacy `difficulty` field. */
+function toMode(source: Record<string, unknown>): MatchMode | null {
+  if (typeof source.mode === 'string' && MODE_SET.has(source.mode)) {
+    return source.mode as MatchMode
+  }
+  if (typeof source.difficulty === 'string') {
+    return LEGACY_DIFFICULTY_TO_MODE[source.difficulty] ?? null
+  }
+  return null
+}
 
 /** Coerces one stored value into a valid entry, or null when unusable. */
 function toLeaderboardEntry(raw: unknown): LeaderboardEntry | null {
   if (typeof raw !== 'object' || raw === null) return null
   const source = raw as Record<string, unknown>
 
-  if (typeof source.difficulty !== 'string' || !DIFFICULTY_SET.has(source.difficulty)) return null
+  const mode = toMode(source)
+  if (mode === null) return null
   if (typeof source.seconds !== 'number' || !Number.isFinite(source.seconds) || source.seconds <= 0) {
     return null
   }
@@ -130,7 +151,7 @@ function toLeaderboardEntry(raw: unknown): LeaderboardEntry | null {
   return {
     id: typeof source.id === 'string' && source.id.length > 0 ? source.id : createEntryId(),
     name: sanitizePlayerName(source.name),
-    difficulty: source.difficulty as Difficulty,
+    mode,
     seconds: Math.round(source.seconds),
     attempts: Math.round(source.attempts),
     stars: safeStars,
@@ -138,7 +159,7 @@ function toLeaderboardEntry(raw: unknown): LeaderboardEntry | null {
   }
 }
 
-/** Drops unusable entries, then trims each difficulty to its top runs. */
+/** Drops unusable entries, then trims each mode to its top runs. */
 export function normalizeLeaderboard(raw: unknown): LeaderboardEntry[] {
   if (!Array.isArray(raw)) return []
 
@@ -151,9 +172,7 @@ export function normalizeLeaderboard(raw: unknown): LeaderboardEntry[] {
     parsed.push(entry)
   }
 
-  return DIFFICULTIES.flatMap((difficulty) =>
-    topEntries(parsed.filter((entry) => entry.difficulty === difficulty)),
-  )
+  return MATCH_MODES.flatMap((mode) => topEntries(parsed.filter((entry) => entry.mode === mode)))
 }
 
 /** Unique-enough id for a leaderboard row without pulling in a uuid dependency. */
@@ -228,10 +247,28 @@ function toPositiveNumberMap(value: unknown): Record<string, number> {
 }
 
 /**
+ * Keeps only per-mode best records. A legacy "hard" record becomes the
+ * `meaning` record unless one already exists; the better of the two wins.
+ */
+function toModeRecordMap(value: unknown): Record<string, number> {
+  const raw = toPositiveNumberMap(value)
+  const result: Record<string, number> = {}
+
+  for (const [key, amount] of Object.entries(raw)) {
+    const mode = MODE_SET.has(key) ? key : LEGACY_DIFFICULTY_TO_MODE[key]
+    if (mode === undefined) continue
+    const previous = result[mode]
+    result[mode] = previous === undefined ? amount : Math.min(previous, amount)
+  }
+
+  return result
+}
+
+/**
  * Coerces an arbitrary parsed value into a valid UserProgress, filling missing
  * fields from the defaults. When `validIds` is supplied, service ids that no
- * longer exist in the dataset are dropped, and mastered wins over reviewing so
- * the two lists stay disjoint.
+ * longer exist in the dataset are dropped. The three mastery lists are kept
+ * disjoint with priority mastered > learning > reviewing.
  */
 export function normalizeProgress(raw: unknown, validIds?: ReadonlySet<string>): UserProgress {
   const base = defaultProgress()
@@ -252,21 +289,27 @@ export function normalizeProgress(raw: unknown, validIds?: ReadonlySet<string>):
 
   const mastered = keepKnownIds(toStringArray(fc.mastered))
   const masteredSet = new Set(mastered)
-  const reviewing = keepKnownIds(toStringArray(fc.reviewing)).filter((id) => !masteredSet.has(id))
+  const learning = keepKnownIds(toStringArray(fc.learning)).filter((id) => !masteredSet.has(id))
+  const learningSet = new Set(learning)
+  const reviewing = keepKnownIds(toStringArray(fc.reviewing)).filter(
+    (id) => !masteredSet.has(id) && !learningSet.has(id),
+  )
 
   return {
     flashCards: {
       totalStudied: toCount(fc.totalStudied),
       mastered,
+      learning,
       reviewing,
       lastStudyDate: toIsoDate(fc.lastStudyDate),
       streak: toCount(fc.streak),
     },
     matchGame: {
       gamesPlayed: toCount(mg.gamesPlayed),
-      bestTime: toPositiveNumberMap(mg.bestTime),
-      bestScore: toPositiveNumberMap(mg.bestScore),
+      bestTime: toModeRecordMap(mg.bestTime),
+      bestScore: toModeRecordMap(mg.bestScore),
       lastPlayDate: toIsoDate(mg.lastPlayDate),
+      recentIds: keepKnownIds(toStringArray(mg.recentIds)).slice(0, MAX_RECENT_IDS),
     },
     quiz: {
       quizzesTaken: toCount(qz.quizzesTaken),
@@ -284,6 +327,7 @@ export function normalizeProgress(raw: unknown, validIds?: ReadonlySet<string>):
         ? sanitizePlayerName(source.playerName)
         : '',
     leaderboard: normalizeLeaderboard(source.leaderboard),
+    starred: keepKnownIds(toStringArray(source.starred)),
   }
 }
 

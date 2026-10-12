@@ -28,18 +28,21 @@ export const CATEGORIES: readonly Category[] = [
   'Billing',
 ] as const
 
-/** Match Game difficulty levels. */
-export type Difficulty = 'easy' | 'medium' | 'hard'
+/**
+ * What the second tile of each pair shows:
+ * - `meaning`: the Thai description of the service.
+ * - `keyword`: exam trigger keywords, the phrases CLF-C02 questions use.
+ */
+export type MatchMode = 'meaning' | 'keyword'
 
-/** Ordered list of every difficulty. */
-export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard'] as const
+/** Ordered list of every Match Game mode. */
+export const MATCH_MODES: readonly MatchMode[] = ['meaning', 'keyword'] as const
 
-/** Number of pairs on the board for each difficulty level. */
-export const PAIR_COUNT: Record<Difficulty, number> = {
-  easy: 4,
-  medium: 6,
-  hard: 8,
-}
+/** Every board is dealt at the former "hard" size. */
+export const MATCH_PAIR_COUNT = 8
+
+/** How well the learner remembers a service. */
+export type MasteryLevel = 'good' | 'medium' | 'bad'
 
 /** A category filter value: a concrete category or the "all" pseudo-value. */
 export type CategoryFilterValue = Category | 'all'
@@ -94,6 +97,11 @@ export interface MatchCard {
    * there is nothing extra to add. Never used for matching.
    */
   subtitle?: string
+  /**
+   * Exam keywords shown as chips on the `description` tile in keyword mode.
+   * `content` still carries them joined, for the accessible label.
+   */
+  keywords?: readonly string[]
   type: 'service' | 'description'
   isMatched: boolean
 }
@@ -108,18 +116,22 @@ export interface MatchGameState {
   /** pairIds already solved. */
   matchedPairs: string[]
   attempts: number
+  /** pairId -> wrong picks that involved one of its tiles. */
+  mistakes: Record<string, number>
   /** Epoch ms when the board was dealt, or null before the game starts. */
   startTime: number | null
   isComplete: boolean
-  difficulty: Difficulty
+  mode: MatchMode
 }
 
 /** Flash Card slice of the persisted progress. */
 export interface FlashCardProgress {
   totalStudied: number
-  /** Service ids the user marked as mastered. */
+  /** Service ids the user marked as mastered ("จำได้ดี"). */
   mastered: string[]
-  /** Service ids the user marked as needing review. */
+  /** Service ids the user remembers only partly ("จำได้กลาง"). */
+  learning: string[]
+  /** Service ids the user marked as needing review ("จำไม่ได้"). */
   reviewing: string[]
   /** ISO date "YYYY-MM-DD"; empty string when the user never studied. */
   lastStudyDate: string
@@ -129,11 +141,16 @@ export interface FlashCardProgress {
 /** Match Game slice of the persisted progress. */
 export interface MatchGameProgress {
   gamesPlayed: number
-  /** difficulty -> best (lowest) seconds. */
+  /** mode -> best (lowest) seconds. */
   bestTime: Record<string, number>
-  /** difficulty -> best (lowest) attempts. */
+  /** mode -> best (lowest) attempts. */
   bestScore: Record<string, number>
   lastPlayDate: string
+  /**
+   * Service ids dealt in the most recent boards, newest first. The next board
+   * avoids them so consecutive rounds do not repeat words.
+   */
+  recentIds: string[]
 }
 
 /** The four CLF-C02 exam domains, used to group and filter quiz questions. */
@@ -201,7 +218,7 @@ export interface LeaderboardEntry {
   id: string
   /** Display name supplied by the player. */
   name: string
-  difficulty: Difficulty
+  mode: MatchMode
   /** Completion time in seconds; lower is better. */
   seconds: number
   /** Number of guesses; the tie-breaker. */
@@ -218,8 +235,10 @@ export interface UserProgress {
   quiz: QuizProgress
   /** Last name the player entered, reused as the default next time. */
   playerName: string
-  /** Best runs per difficulty, already sorted fastest first. */
+  /** Best runs per mode, already sorted fastest first. */
   leaderboard: LeaderboardEntry[]
+  /** Service ids the learner starred for extra practice. */
+  starred: string[]
 }
 
 /** Aggregate counters shown next to the Flash Card deck. */

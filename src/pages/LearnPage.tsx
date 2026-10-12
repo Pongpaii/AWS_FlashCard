@@ -45,6 +45,10 @@ export function LearnPage() {
     () => new Set(progress.flashCards.reviewing),
     [progress.flashCards.reviewing],
   )
+  const learningSet = useMemo(
+    () => new Set(progress.flashCards.learning),
+    [progress.flashCards.learning],
+  )
 
   const normalizedQuery = query.trim().toLowerCase()
 
@@ -146,9 +150,11 @@ export function LearnPage() {
                   status={
                     masteredSet.has(service.id)
                       ? 'mastered'
-                      : reviewingSet.has(service.id)
-                        ? 'reviewing'
-                        : 'untouched'
+                      : learningSet.has(service.id)
+                        ? 'learning'
+                        : reviewingSet.has(service.id)
+                          ? 'reviewing'
+                          : 'untouched'
                   }
                 />
               ))}

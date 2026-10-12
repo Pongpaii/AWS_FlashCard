@@ -4,15 +4,16 @@ import type { AWSService } from '../../types'
 interface ServiceArticleProps {
   service: AWSService
   /** Study status pulled from saved progress, for a quick visual cue. */
-  status: 'mastered' | 'reviewing' | 'untouched'
+  status: 'mastered' | 'learning' | 'reviewing' | 'untouched'
 }
 
 const STATUS_BADGE: Record<
   ServiceArticleProps['status'],
   { label: string; className: string } | null
 > = {
-  mastered: { label: '✓ จำได้แล้ว', className: 'bg-green-100 text-green-700' },
-  reviewing: { label: '! ยังไม่แม่น', className: 'bg-red-100 text-red-700' },
+  mastered: { label: '✓ จำได้ดี', className: 'bg-green-100 text-green-700' },
+  learning: { label: '~ จำได้กลาง', className: 'bg-amber-100 text-amber-700' },
+  reviewing: { label: '! จำไม่ได้', className: 'bg-red-100 text-red-700' },
   untouched: null,
 }
 

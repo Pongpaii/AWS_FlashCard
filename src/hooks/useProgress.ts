@@ -1,7 +1,15 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
 import { SERVICE_IDS, TOTAL_SERVICES } from '../data/awsServices'
-import type { Difficulty, LeaderboardEntry, StarRating, UserProgress } from '../types'
+import type {
+  LeaderboardEntry,
+  MasteryLevel,
+  MatchMode,
+  StarRating,
+  UserProgress,
+} from '../types'
+import { pushRecentIds } from '../utils/matchPicker'
 import {
+  MAX_RECENT_IDS,
   calculateStreak,
   clearProgress,
   createEntryId,
@@ -16,7 +24,10 @@ import {
 
 export interface ProgressSummary {
   masteredCount: number
+  /** Services marked "จำได้กลาง". */
+  learningCount: number
   reviewingCount: number
+  starredCount: number
   totalServices: number
   /** Percentage of the dataset marked as mastered, rounded to an integer. */
   masteredPercent: number
@@ -28,7 +39,7 @@ export interface ProgressSummary {
 
 export interface SubmitScoreInput {
   name: string
-  difficulty: Difficulty
+  mode: MatchMode
   seconds: number
   attempts: number
   stars: StarRating
@@ -41,17 +52,28 @@ export interface UseProgressResult {
   recordMastered: (serviceId: string) => void
   /** Marks a service as needing review and persists the change. */
   recordReviewing: (serviceId: string) => void
+  /** Sets the three-level mastery mark of a service. */
+  setMastery: (serviceId: string, level: MasteryLevel) => void
+  /** Current mastery mark, or null when never marked. */
+  masteryOf: (serviceId: string) => MasteryLevel | null
+  /** Every marked service id with its level. */
+  masteryMap: ReadonlyMap<string, MasteryLevel>
+  starredSet: ReadonlySet<string>
+  isStarred: (serviceId: string) => boolean
+  toggleStar: (serviceId: string) => void
+  /** Remembers the services just dealt so the next board avoids them. */
+  recordDealt: (serviceIds: readonly string[]) => void
   /** Stores the outcome of a finished Match Game. */
-  recordMatchResult: (difficulty: Difficulty, seconds: number, attempts: number) => void
+  recordMatchResult: (mode: MatchMode, seconds: number, attempts: number) => void
   /** Stores the outcome of a finished scenario quiz. */
   recordQuizResult: (correct: number, total: number) => void
   /**
    * Adds a finished run to the leaderboard and returns the rank it earned,
-   * or null when it did not make the top of that difficulty.
+   * or null when it did not make the top of that mode.
    */
   submitScore: (input: SubmitScoreInput) => number | null
-  /** Runs of one difficulty, fastest first. */
-  leaderboardFor: (difficulty: Difficulty) => LeaderboardEntry[]
+  /** Runs of one mode, fastest first. */
+  leaderboardFor: (mode: MatchMode) => LeaderboardEntry[]
   /** Name remembered from the last run; empty when never set. */
   playerName: string
   setPlayerName: (name: string) => void
@@ -59,8 +81,16 @@ export interface UseProgressResult {
   clearLeaderboard: () => void
   /** Wipes both in-memory and stored progress. */
   resetProgress: () => void
-  bestTimeFor: (difficulty: Difficulty) => number | null
-  bestScoreFor: (difficulty: Difficulty) => number | null
+  bestTimeFor: (mode: MatchMode) => number | null
+  bestScoreFor: (mode: MatchMode) => number | null
+}
+
+type MasteryList = 'mastered' | 'learning' | 'reviewing'
+
+const LIST_FOR_LEVEL: Record<MasteryLevel, MasteryList> = {
+  good: 'mastered',
+  medium: 'learning',
+  bad: 'reviewing',
 }
 
 /**
@@ -88,33 +118,32 @@ export function useProgressState(): UseProgressResult {
     })
   }, [])
 
-  /** Shared logic for marking a card, keeping mastered/reviewing disjoint. */
+  /** Shared logic for marking a card, keeping the three mastery lists disjoint. */
   const markCard = useCallback(
-    (serviceId: string, target: 'mastered' | 'reviewing') => {
+    (serviceId: string, target: MasteryList) => {
       if (!SERVICE_IDS.has(serviceId)) return
 
       commit((current) => {
         const { flashCards } = current
         const today = todayISO()
 
-        const mastered = flashCards.mastered.filter((id) => id !== serviceId)
-        const reviewing = flashCards.reviewing.filter((id) => id !== serviceId)
-
-        if (target === 'mastered') {
-          mastered.push(serviceId)
-        } else {
-          reviewing.push(serviceId)
+        const lists: Record<MasteryList, string[]> = {
+          mastered: flashCards.mastered.filter((id) => id !== serviceId),
+          learning: flashCards.learning.filter((id) => id !== serviceId),
+          reviewing: flashCards.reviewing.filter((id) => id !== serviceId),
         }
+        lists[target].push(serviceId)
 
         const alreadyStudied =
-          flashCards.mastered.includes(serviceId) || flashCards.reviewing.includes(serviceId)
+          flashCards.mastered.includes(serviceId) ||
+          flashCards.learning.includes(serviceId) ||
+          flashCards.reviewing.includes(serviceId)
 
         return {
           ...current,
           flashCards: {
             totalStudied: alreadyStudied ? flashCards.totalStudied : flashCards.totalStudied + 1,
-            mastered,
-            reviewing,
+            ...lists,
             lastStudyDate: today,
             streak: calculateStreak(flashCards.lastStudyDate, today, flashCards.streak),
           },
@@ -134,30 +163,81 @@ export function useProgressState(): UseProgressResult {
     [markCard],
   )
 
+  const setMastery = useCallback(
+    (serviceId: string, level: MasteryLevel) => markCard(serviceId, LIST_FOR_LEVEL[level]),
+    [markCard],
+  )
+
+  const masteryMap = useMemo<ReadonlyMap<string, MasteryLevel>>(() => {
+    const map = new Map<string, MasteryLevel>()
+    for (const id of progress.flashCards.reviewing) map.set(id, 'bad')
+    for (const id of progress.flashCards.learning) map.set(id, 'medium')
+    for (const id of progress.flashCards.mastered) map.set(id, 'good')
+    return map
+  }, [progress.flashCards.mastered, progress.flashCards.learning, progress.flashCards.reviewing])
+
+  const masteryOf = useCallback(
+    (serviceId: string) => masteryMap.get(serviceId) ?? null,
+    [masteryMap],
+  )
+
+  const starredSet = useMemo<ReadonlySet<string>>(
+    () => new Set(progress.starred),
+    [progress.starred],
+  )
+
+  const isStarred = useCallback((serviceId: string) => starredSet.has(serviceId), [starredSet])
+
+  const toggleStar = useCallback(
+    (serviceId: string) => {
+      if (!SERVICE_IDS.has(serviceId)) return
+      commit((current) => ({
+        ...current,
+        starred: current.starred.includes(serviceId)
+          ? current.starred.filter((id) => id !== serviceId)
+          : [...current.starred, serviceId],
+      }))
+    },
+    [commit],
+  )
+
+  const recordDealt = useCallback(
+    (serviceIds: readonly string[]) => {
+      commit((current) => ({
+        ...current,
+        matchGame: {
+          ...current.matchGame,
+          recentIds: pushRecentIds(current.matchGame.recentIds, serviceIds, MAX_RECENT_IDS),
+        },
+      }))
+    },
+    [commit],
+  )
+
   const recordMatchResult = useCallback(
-    (difficulty: Difficulty, seconds: number, attempts: number) => {
+    (mode: MatchMode, seconds: number, attempts: number) => {
       // Guard against zero or negative values so best records stay meaningful.
       const safeSeconds = Math.max(1, Math.round(seconds))
       const safeAttempts = Math.max(1, Math.round(attempts))
 
       commit((current) => {
         const { matchGame } = current
-        const previousTime = matchGame.bestTime[difficulty]
-        const previousScore = matchGame.bestScore[difficulty]
+        const previousTime = matchGame.bestTime[mode]
+        const previousScore = matchGame.bestScore[mode]
 
         return {
           ...current,
           matchGame: {
+            ...matchGame,
             gamesPlayed: matchGame.gamesPlayed + 1,
             // Best values are monotonically non-increasing.
             bestTime: {
               ...matchGame.bestTime,
-              [difficulty]:
-                previousTime === undefined ? safeSeconds : Math.min(previousTime, safeSeconds),
+              [mode]: previousTime === undefined ? safeSeconds : Math.min(previousTime, safeSeconds),
             },
             bestScore: {
               ...matchGame.bestScore,
-              [difficulty]:
+              [mode]:
                 previousScore === undefined ? safeAttempts : Math.min(previousScore, safeAttempts),
             },
             lastPlayDate: todayISO(),
@@ -191,11 +271,11 @@ export function useProgressState(): UseProgressResult {
   )
 
   const submitScore = useCallback(
-    ({ name, difficulty, seconds, attempts, stars }: SubmitScoreInput): number | null => {
+    ({ name, mode, seconds, attempts, stars }: SubmitScoreInput): number | null => {
       const entry: LeaderboardEntry = {
         id: createEntryId(),
         name: sanitizePlayerName(name),
-        difficulty,
+        mode,
         seconds: Math.max(1, Math.round(seconds)),
         attempts: Math.max(1, Math.round(attempts)),
         stars,
@@ -215,8 +295,8 @@ export function useProgressState(): UseProgressResult {
     [commit],
   )
 
-  const leaderboardForDifficulty = useCallback(
-    (difficulty: Difficulty) => selectLeaderboard(progress.leaderboard, difficulty),
+  const leaderboardForMode = useCallback(
+    (mode: MatchMode) => selectLeaderboard(progress.leaderboard, mode),
     [progress.leaderboard],
   )
 
@@ -241,29 +321,32 @@ export function useProgressState(): UseProgressResult {
   }, [])
 
   const bestTimeFor = useCallback(
-    (difficulty: Difficulty) => progress.matchGame.bestTime[difficulty] ?? null,
+    (mode: MatchMode) => progress.matchGame.bestTime[mode] ?? null,
     [progress.matchGame.bestTime],
   )
 
   const bestScoreFor = useCallback(
-    (difficulty: Difficulty) => progress.matchGame.bestScore[difficulty] ?? null,
+    (mode: MatchMode) => progress.matchGame.bestScore[mode] ?? null,
     [progress.matchGame.bestScore],
   )
 
   const summary = useMemo<ProgressSummary>(() => {
     const masteredCount = progress.flashCards.mastered.length
+    const learningCount = progress.flashCards.learning.length
     const reviewingCount = progress.flashCards.reviewing.length
 
     return {
       masteredCount,
+      learningCount,
       reviewingCount,
+      starredCount: progress.starred.length,
       totalServices: TOTAL_SERVICES,
       masteredPercent:
         TOTAL_SERVICES === 0 ? 0 : Math.round((masteredCount / TOTAL_SERVICES) * 100),
       streak: progress.flashCards.streak,
       gamesPlayed: progress.matchGame.gamesPlayed,
       lastStudyDate: progress.flashCards.lastStudyDate,
-      hasFlashCardProgress: masteredCount + reviewingCount > 0,
+      hasFlashCardProgress: masteredCount + learningCount + reviewingCount > 0,
     }
   }, [progress])
 
@@ -272,10 +355,17 @@ export function useProgressState(): UseProgressResult {
     summary,
     recordMastered,
     recordReviewing,
+    setMastery,
+    masteryOf,
+    masteryMap,
+    starredSet,
+    isStarred,
+    toggleStar,
+    recordDealt,
     recordMatchResult,
     recordQuizResult,
     submitScore,
-    leaderboardFor: leaderboardForDifficulty,
+    leaderboardFor: leaderboardForMode,
     playerName: progress.playerName,
     setPlayerName,
     clearLeaderboard,

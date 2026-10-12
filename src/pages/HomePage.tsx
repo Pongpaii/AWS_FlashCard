@@ -1,29 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MODE_META } from '../components/match/matchLabels'
 import { Leaderboard } from '../components/ui/Leaderboard'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { formatSeconds } from '../hooks/useMatchGame'
 import { useProgress } from '../hooks/useProgress'
-import type { Difficulty } from '../types'
-import { DIFFICULTIES, PAIR_COUNT } from '../types'
-
-const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: 'ง่าย',
-  medium: 'กลาง',
-  hard: 'ยาก',
-}
+import type { MatchMode } from '../types'
+import { MATCH_MODES, MATCH_PAIR_COUNT } from '../types'
 
 /** Landing screen: mode picker, overall stats, and a quick resume shortcut. */
 export function HomePage() {
   const { summary, bestTimeFor, bestScoreFor, resetProgress, leaderboardFor, clearLeaderboard } =
     useProgress()
 
-  const [boardDifficulty, setBoardDifficulty] = useState<Difficulty>('easy')
-  const boardEntries = leaderboardFor(boardDifficulty)
-  const totalRuns = DIFFICULTIES.reduce(
-    (sum, difficulty) => sum + leaderboardFor(difficulty).length,
-    0,
-  )
+  const [boardMode, setBoardMode] = useState<MatchMode>('meaning')
+  const boardEntries = leaderboardFor(boardMode)
+  const totalRuns = MATCH_MODES.reduce((sum, mode) => sum + leaderboardFor(mode).length, 0)
 
   const handleReset = () => {
     if (window.confirm('ต้องการล้างความก้าวหน้าทั้งหมดหรือไม่ การกระทำนี้ย้อนกลับไม่ได้')) {
@@ -131,8 +123,8 @@ export function HomePage() {
             เกมจับคู่
           </h2>
           <p className="mt-1 text-sm text-slate-600">
-            เห็นการ์ดทุกใบตั้งแต่แรก คลิกจับคู่ชื่อ service กับหน้าที่ของมัน เลือกได้ 3 ระดับ
-            พร้อมจับเวลาและเก็บสถิติดีที่สุด
+            เห็นการ์ดทุกใบตั้งแต่แรก จับคู่ชื่อ service กับความหมาย หรือกับคีย์เวิร์ดที่ออกสอบ
+            ติดดาวคำที่อยากเน้น และไม่สุ่มคำซ้ำกับรอบก่อน
           </p>
         </Link>
       </section>
@@ -157,18 +149,18 @@ export function HomePage() {
           )}
         </div>
 
-        <div role="group" aria-label="เลือกระดับของกระดานผู้นำ" className="mt-4 flex flex-wrap gap-2">
-          {DIFFICULTIES.map((difficulty) => {
-            const isActive = difficulty === boardDifficulty
-            const count = leaderboardFor(difficulty).length
+        <div role="group" aria-label="เลือกโหมดของกระดานผู้นำ" className="mt-4 flex flex-wrap gap-2">
+          {MATCH_MODES.map((mode) => {
+            const isActive = mode === boardMode
+            const count = leaderboardFor(mode).length
 
             return (
               <button
-                key={difficulty}
+                key={mode}
                 type="button"
                 aria-pressed={isActive}
-                aria-label={`ดูกระดานระดับ${DIFFICULTY_LABELS[difficulty]} มี ${count} สถิติ`}
-                onClick={() => setBoardDifficulty(difficulty)}
+                aria-label={`ดูกระดานโหมด${MODE_META[mode].label} มี ${count} สถิติ`}
+                onClick={() => setBoardMode(mode)}
                 className={[
                   'rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
                   isActive
@@ -176,7 +168,7 @@ export function HomePage() {
                     : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100',
                 ].join(' ')}
               >
-                ระดับ{DIFFICULTY_LABELS[difficulty]}{' '}
+                โหมด{MODE_META[mode].label}{' '}
                 <span className="tabular-nums opacity-80">({count})</span>
               </button>
             )
@@ -184,22 +176,21 @@ export function HomePage() {
         </div>
 
         <p className="mt-3 text-xs text-slate-400">
-          ระดับ{DIFFICULTY_LABELS[boardDifficulty]} = {PAIR_COUNT[boardDifficulty]} คู่ ·
-          เรียงจากเวลาน้อยที่สุด ถ้าเวลาเท่ากันคนที่ทายน้อยครั้งกว่าอยู่บน ·
-          เก็บสถิติไว้ในเบราว์เซอร์นี้เท่านั้น
+          ทุกโหมด {MATCH_PAIR_COUNT} คู่ · เรียงจากเวลาน้อยที่สุด
+          ถ้าเวลาเท่ากันคนที่ทายน้อยครั้งกว่าอยู่บน · เก็บสถิติไว้ในเบราว์เซอร์นี้เท่านั้น
         </p>
 
         <div className="mt-4">
-          <Leaderboard entries={boardEntries} difficulty={boardDifficulty} />
+          <Leaderboard entries={boardEntries} mode={boardMode} />
         </div>
       </section>
 
       <section className="rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200">
         <h2 className="text-lg font-bold text-slate-900">สถิติของคุณ</h2>
 
-        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <div className="rounded-xl bg-indigo-50 px-4 py-3">
-            <dt className="text-xs font-medium text-indigo-700">จำได้แล้ว</dt>
+            <dt className="text-xs font-medium text-indigo-700">จำได้ดี</dt>
             <dd className="mt-0.5 text-2xl font-bold tabular-nums text-indigo-800">
               {summary.masteredCount}
               <span className="text-sm font-medium text-indigo-500">
@@ -207,10 +198,22 @@ export function HomePage() {
               </span>
             </dd>
           </div>
+          <div className="rounded-xl bg-amber-50 px-4 py-3">
+            <dt className="text-xs font-medium text-amber-700">จำได้กลาง</dt>
+            <dd className="mt-0.5 text-2xl font-bold tabular-nums text-amber-800">
+              {summary.learningCount}
+            </dd>
+          </div>
           <div className="rounded-xl bg-red-50 px-4 py-3">
-            <dt className="text-xs font-medium text-red-700">ยังไม่แม่น</dt>
+            <dt className="text-xs font-medium text-red-700">จำไม่ได้</dt>
             <dd className="mt-0.5 text-2xl font-bold tabular-nums text-red-800">
               {summary.reviewingCount}
+            </dd>
+          </div>
+          <div className="rounded-xl bg-yellow-50 px-4 py-3">
+            <dt className="text-xs font-medium text-yellow-700">ติดดาว ★</dt>
+            <dd className="mt-0.5 text-2xl font-bold tabular-nums text-yellow-800">
+              {summary.starredCount}
             </dd>
           </div>
           <div className="rounded-xl bg-orange-50 px-4 py-3">
@@ -230,19 +233,14 @@ export function HomePage() {
         </dl>
 
         <h3 className="mt-6 text-sm font-bold text-slate-700">สถิติเกมจับคู่ที่ดีที่สุด</h3>
-        <ul className="mt-2 grid gap-2 sm:grid-cols-3">
-          {DIFFICULTIES.map((difficulty) => {
-            const time = bestTimeFor(difficulty)
-            const attempts = bestScoreFor(difficulty)
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+          {MATCH_MODES.map((mode) => {
+            const time = bestTimeFor(mode)
+            const attempts = bestScoreFor(mode)
 
             return (
-              <li
-                key={difficulty}
-                className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200"
-              >
-                <p className="text-sm font-semibold text-slate-700">
-                  ระดับ{DIFFICULTY_LABELS[difficulty]}
-                </p>
+              <li key={mode} className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
+                <p className="text-sm font-semibold text-slate-700">โหมด{MODE_META[mode].label}</p>
                 <p className="mt-1 text-sm text-slate-500">
                   เวลา{' '}
                   <strong className="tabular-nums text-emerald-700">

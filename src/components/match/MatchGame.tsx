@@ -2,27 +2,30 @@ import { useState } from 'react'
 import { CATEGORY_LABELS_TH, categoryCounts } from '../../data/awsServices'
 import { formatSeconds, useMatchGame } from '../../hooks/useMatchGame'
 import { useProgress } from '../../hooks/useProgress'
-import type { AWSService, CategoryFilterValue, Difficulty } from '../../types'
-import { CATEGORIES, DIFFICULTIES, PAIR_COUNT } from '../../types'
+import type { AWSService, CategoryFilterValue } from '../../types'
+import { CATEGORIES, MATCH_MODES, MATCH_PAIR_COUNT } from '../../types'
 import { ANONYMOUS_NAME, MAX_PLAYER_NAME_LENGTH } from '../../utils/storage'
 import { Timer } from '../ui/Timer'
 import { MatchCard } from './MatchCard'
 import { MatchResult } from './MatchResult'
+import { MODE_META } from './matchLabels'
 
 interface MatchGameProps {
   services: readonly AWSService[]
   onBackHome: () => void
 }
 
-const DIFFICULTY_META: Record<Difficulty, { label: string; blurb: string; tone: string }> = {
-  easy: { label: 'ง่าย', blurb: '4 คู่ · 8 การ์ด', tone: 'ring-green-300 hover:bg-green-50' },
-  medium: { label: 'กลาง', blurb: '6 คู่ · 12 การ์ด', tone: 'ring-amber-300 hover:bg-amber-50' },
-  hard: { label: 'ยาก', blurb: '8 คู่ · 16 การ์ด', tone: 'ring-red-300 hover:bg-red-50' },
-}
-
-/** Difficulty picker, playable board, and end-of-game summary. */
+/** Mode picker, playable board, and end-of-game summary. */
 export function MatchGame({ services, onBackHome }: MatchGameProps) {
-  const { bestTimeFor, bestScoreFor, playerName, setPlayerName, leaderboardFor } = useProgress()
+  const {
+    bestTimeFor,
+    bestScoreFor,
+    playerName,
+    setPlayerName,
+    leaderboardFor,
+    starredSet,
+    summary,
+  } = useProgress()
   const {
     state,
     pairCount,
@@ -31,6 +34,7 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
     stars,
     rank,
     notice,
+    roundServices,
     startGame,
     selectCard,
     resetGame,
@@ -64,7 +68,7 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
         <section className="rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200">
           <h2 className="text-lg font-bold text-slate-900">2. เลือกหมวด (ไม่บังคับ)</h2>
           <p className="mt-1 text-sm text-slate-500">
-            ถ้าหมวดที่เลือกมีการ์ดไม่พอสำหรับระดับที่เลือก ระบบจะสุ่มจากทุกหมวดให้แทน
+            ถ้าหมวดที่เลือกมีไม่ถึง {MATCH_PAIR_COUNT} บริการ ระบบจะสุ่มจากทุกหมวดให้แทน
           </p>
 
           <label className="mt-4 block">
@@ -86,23 +90,25 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
         </section>
 
         <section className="rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200">
-          <h2 className="text-lg font-bold text-slate-900">3. เลือกระดับความยากเพื่อเริ่มเล่น</h2>
+          <h2 className="text-lg font-bold text-slate-900">3. เลือกโหมดเพื่อเริ่มเล่น</h2>
           <p className="mt-1 text-sm text-slate-500">
-            การ์ดทุกใบจะแสดงให้เห็นตั้งแต่แรก คลิกชื่อบริการแล้วคลิกคำอธิบายที่คู่กัน
+            กระดานละ {MATCH_PAIR_COUNT} คู่ · {MATCH_PAIR_COUNT * 2} การ์ด
+            คำที่เพิ่งเล่นไปจะไม่ถูกสุ่มซ้ำ คำที่ติดดาว ({summary.starredCount} คำ)
+            หรือจำไม่ได้จะถูกสุ่มมาบ่อยขึ้น
           </p>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            {DIFFICULTIES.map((difficulty) => {
-              const meta = DIFFICULTY_META[difficulty]
-              const best = bestTimeFor(difficulty)
-              const bestAttempts = bestScoreFor(difficulty)
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {MATCH_MODES.map((mode) => {
+              const meta = MODE_META[mode]
+              const best = bestTimeFor(mode)
+              const bestAttempts = bestScoreFor(mode)
 
               return (
                 <button
-                  key={difficulty}
+                  key={mode}
                   type="button"
-                  aria-label={`เริ่มเกมระดับ${meta.label} ${PAIR_COUNT[difficulty]} คู่`}
-                  onClick={() => startGame(difficulty, category)}
+                  aria-label={`เริ่มเกมโหมด${meta.label} ${MATCH_PAIR_COUNT} คู่`}
+                  onClick={() => startGame(mode, category)}
                   className={`rounded-xl bg-white p-4 text-left ring-2 transition-colors ${meta.tone}`}
                 >
                   <p className="text-xl font-bold text-slate-900">{meta.label}</p>
@@ -142,6 +148,9 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
       )}
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl bg-white px-5 py-3 shadow-md ring-1 ring-slate-200">
+        <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+          โหมด{MODE_META[state.mode].label}
+        </p>
         <p className="text-sm text-slate-500">
           เวลา{' '}
           <Timer
@@ -163,11 +172,11 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
 
         <button
           type="button"
-          aria-label="เริ่มเกมใหม่และกลับไปหน้าเลือกระดับ"
+          aria-label="เริ่มเกมใหม่และกลับไปหน้าเลือกโหมด"
           onClick={resetGame}
           className="ml-auto rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition-colors hover:bg-slate-100"
         >
-          เลือกระดับใหม่
+          เลือกโหมดใหม่
         </button>
       </div>
 
@@ -182,6 +191,7 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
             card={card}
             isSelected={state.selectedIds.includes(card.id)}
             isWrong={state.wrongIds.includes(card.id)}
+            isStarred={starredSet.has(card.pairId)}
             onSelect={selectCard}
           />
         ))}
@@ -189,15 +199,17 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
 
       {state.isComplete && stars !== null && (
         <MatchResult
-          difficulty={state.difficulty}
+          mode={state.mode}
           elapsedSeconds={finalSeconds ?? 0}
           attempts={state.attempts}
           stars={stars}
           rank={rank}
-          leaderboard={leaderboardFor(state.difficulty)}
-          bestTime={bestTimeFor(state.difficulty)}
-          bestScore={bestScoreFor(state.difficulty)}
-          onPlayAgain={() => startGame(state.difficulty, category)}
+          leaderboard={leaderboardFor(state.mode)}
+          bestTime={bestTimeFor(state.mode)}
+          bestScore={bestScoreFor(state.mode)}
+          roundServices={roundServices}
+          mistakes={state.mistakes}
+          onPlayAgain={() => startGame(state.mode, category)}
           onBackHome={onBackHome}
         />
       )}

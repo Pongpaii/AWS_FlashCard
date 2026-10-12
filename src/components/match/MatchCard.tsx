@@ -6,6 +6,8 @@ interface MatchCardProps {
   isSelected: boolean
   /** True while this tile is flagged as part of a wrong pick. */
   isWrong: boolean
+  /** Shows a small star on the service tile of a starred word. */
+  isStarred: boolean
   onSelect: (cardId: string) => void
 }
 
@@ -13,13 +15,14 @@ interface MatchCardProps {
  * One board tile. Every tile shows its content from the start, so matching is
  * about reading and pairing rather than remembering positions.
  *
- * Memoised because a hard board renders 16 tiles and only a couple change per
+ * Memoised because a board renders 16 tiles and only a couple change per
  * selection.
  */
 export const MatchCard = memo(function MatchCard({
   card,
   isSelected,
   isWrong,
+  isStarred,
   onSelect,
 }: MatchCardProps) {
   // Solved tiles leave their grid slot in place so the board never reflows.
@@ -38,30 +41,54 @@ export const MatchCard = memo(function MatchCard({
       ? 'border-orange-400 bg-orange-50 ring-2 ring-orange-300'
       : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40'
 
+  const showStar = isStarred && card.type === 'service'
+
+  const label =
+    card.type === 'service'
+      ? `ชื่อบริการ ${card.content}${card.subtitle === undefined ? '' : ` (${card.subtitle})`}${showStar ? ' ติดดาว' : ''}`
+      : card.keywords !== undefined
+        ? `คีย์เวิร์ด ${card.keywords.join(', ')}`
+        : `คำอธิบาย ${card.content}`
+
   return (
     <button
       type="button"
       aria-pressed={isSelected}
-      aria-label={
-        card.type === 'service'
-          ? `ชื่อบริการ ${card.content}${card.subtitle === undefined ? '' : ` (${card.subtitle})`}`
-          : `คำอธิบาย ${card.content}`
-      }
+      aria-label={label}
       onClick={() => onSelect(card.id)}
       className={[
-        'flex min-h-[8.5rem] flex-col items-center justify-center gap-1 rounded-xl border-2 p-3 text-center shadow-sm transition-colors duration-150',
+        'relative flex min-h-[8.5rem] flex-col items-center justify-center gap-1 rounded-xl border-2 p-3 text-center shadow-sm transition-colors duration-150',
         stateClasses,
       ].join(' ')}
     >
-      <span
-        className={
-          card.type === 'service'
-            ? 'text-lg font-bold leading-snug text-slate-900 sm:text-xl'
-            : 'text-[13px] leading-relaxed text-slate-700'
-        }
-      >
-        {card.content}
-      </span>
+      {showStar && (
+        <span aria-hidden="true" className="absolute right-2 top-1.5 text-sm text-amber-400">
+          ★
+        </span>
+      )}
+
+      {card.keywords !== undefined ? (
+        <span className="flex flex-wrap justify-center gap-1">
+          {card.keywords.map((keyword) => (
+            <span
+              key={keyword}
+              className="rounded-md bg-sky-50 px-1.5 py-0.5 text-[12px] font-semibold leading-snug text-sky-800 ring-1 ring-sky-200"
+            >
+              {keyword}
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span
+          className={
+            card.type === 'service'
+              ? 'text-lg font-bold leading-snug text-slate-900 sm:text-xl'
+              : 'text-[13px] leading-relaxed text-slate-700'
+          }
+        >
+          {card.content}
+        </span>
+      )}
 
       {/* Expanded product name, so abbreviations are learnable in this mode too. */}
       {card.subtitle !== undefined && (

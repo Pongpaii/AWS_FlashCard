@@ -1,44 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { examKeywordsFor } from '../data/examKeywords'
 import type {
   AWSService,
   CategoryFilterValue,
-  Difficulty,
   MatchCard,
   MatchGameState,
+  MatchMode,
   RandomFn,
   StarRating,
 } from '../types'
-import { PAIR_COUNT } from '../types'
-import { sample, shuffle } from '../utils/shuffle'
+import { MATCH_PAIR_COUNT } from '../types'
+import { pickMatchServices } from '../utils/matchPicker'
+import { shuffle } from '../utils/shuffle'
 import { useProgress } from './useProgress'
 
 /** How long a wrong pick stays highlighted in red. */
 export const WRONG_FEEDBACK_MS = 700
 
 /**
- * Picks `count` distinct services. When a category is given but does not hold
- * enough services, falls back to the whole dataset instead of failing.
+ * Creates one `service` tile and one `description` tile per service, shuffled.
+ * In `keyword` mode the description tile shows exam keywords instead of the
+ * Thai meaning (falling back to the meaning if a service has no keywords).
  */
-export function sampleServices(
-  services: readonly AWSService[],
-  count: number,
-  category: CategoryFilterValue = 'all',
-  rng: RandomFn = Math.random,
-): { picked: AWSService[]; usedFallback: boolean } {
-  if (count <= 0) return { picked: [], usedFallback: false }
-
-  const pool =
-    category === 'all' ? services : services.filter((service) => service.category === category)
-
-  const needsFallback = pool.length < count
-  const source = needsFallback ? services : pool
-
-  return { picked: sample(source, count, rng), usedFallback: needsFallback }
-}
-
-/** Creates one `service` tile and one `description` tile per service, shuffled. */
 export function buildMatchCards(
   services: readonly AWSService[],
+  mode: MatchMode = 'meaning',
   rng: RandomFn = Math.random,
 ): MatchCard[] {
   const cards: MatchCard[] = []
@@ -53,10 +39,13 @@ export function buildMatchCards(
       type: 'service',
       isMatched: false,
     })
+
+    const keywords = mode === 'keyword' ? examKeywordsFor(service.id) : []
     cards.push({
       id: `${service.id}-description`,
       pairId: service.id,
-      content: service.description,
+      content: keywords.length > 0 ? keywords.join(' · ') : service.description,
+      ...(keywords.length > 0 ? { keywords } : {}),
       type: 'description',
       isMatched: false,
     })
@@ -86,16 +75,17 @@ export function formatSeconds(totalSeconds: number): string {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
-function emptyState(difficulty: Difficulty): MatchGameState {
+function emptyState(mode: MatchMode): MatchGameState {
   return {
     cards: [],
     selectedIds: [],
     wrongIds: [],
     matchedPairs: [],
     attempts: 0,
+    mistakes: {},
     startTime: null,
     isComplete: false,
-    difficulty,
+    mode,
   }
 }
 
@@ -115,24 +105,37 @@ export interface UseMatchGameResult {
   rank: number | null
   /** Thai warning shown when the chosen category had too few services. */
   notice: string | null
-  startGame: (difficulty: Difficulty, category?: CategoryFilterValue) => void
+  /** Services on the current board, in the order they were picked. */
+  roundServices: AWSService[]
+  startGame: (mode: MatchMode, category?: CategoryFilterValue) => void
   /** Selects a tile, or deselects it when it is already selected. */
   selectCard: (cardId: string) => void
   resetGame: () => void
 }
 
 export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameResult {
-  const { recordMatchResult, submitScore, playerName } = useProgress()
+  const {
+    progress,
+    starredSet,
+    masteryMap,
+    recordDealt,
+    recordMatchResult,
+    submitScore,
+    playerName,
+  } = useProgress()
 
-  const [state, setState] = useState<MatchGameState>(() => emptyState('easy'))
+  const [state, setState] = useState<MatchGameState>(() => emptyState('meaning'))
   const [hasStarted, setHasStarted] = useState(false)
   const [finalSeconds, setFinalSeconds] = useState<number | null>(null)
   const [rank, setRank] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [roundServices, setRoundServices] = useState<AWSService[]>([])
 
-  // Read inside the completion effect without re-running it when the name changes.
+  // Read inside callbacks/effects without re-creating them on every progress change.
   const playerNameRef = useRef(playerName)
   playerNameRef.current = playerName
+  const pickContextRef = useRef({ recentIds: progress.matchGame.recentIds, starredSet, masteryMap })
+  pickContextRef.current = { recentIds: progress.matchGame.recentIds, starredSet, masteryMap }
 
   const wrongTimeoutRef = useRef<number | null>(null)
   // Guards against double-counting a finished game in React strict mode.
@@ -148,36 +151,35 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
   // Release the pending timer when the page unmounts.
   useEffect(() => clearWrongTimeout, [clearWrongTimeout])
 
-  const pairCount = PAIR_COUNT[state.difficulty]
+  const pairCount = MATCH_PAIR_COUNT
 
   const startGame = useCallback(
-    (difficulty: Difficulty, category: CategoryFilterValue = 'all') => {
+    (mode: MatchMode, category: CategoryFilterValue = 'all') => {
       clearWrongTimeout()
       recordedRef.current = false
 
-      const count = PAIR_COUNT[difficulty]
-      const { picked, usedFallback } = sampleServices(services, count, category)
+      const context = pickContextRef.current
+      const { picked, usedFallback } = pickMatchServices(services, MATCH_PAIR_COUNT, category, {
+        recentIds: context.recentIds,
+        starred: context.starredSet,
+        mastery: context.masteryMap,
+      })
+      recordDealt(picked.map((service) => service.id))
 
       setNotice(
-        usedFallback
-          ? 'หมวดนี้มีการ์ดไม่พอสำหรับระดับที่เลือก ระบบสุ่มจากทุกหมวดให้แทน'
-          : null,
+        usedFallback ? 'หมวดนี้มีการ์ดไม่พอสำหรับ 8 คู่ ระบบสุ่มจากทุกหมวดให้แทน' : null,
       )
       setFinalSeconds(null)
       setRank(null)
       setHasStarted(true)
+      setRoundServices(picked)
       setState({
-        cards: buildMatchCards(picked),
-        selectedIds: [],
-        wrongIds: [],
-        matchedPairs: [],
-        attempts: 0,
+        ...emptyState(mode),
+        cards: buildMatchCards(picked, mode),
         startTime: Date.now(),
-        isComplete: false,
-        difficulty,
       })
     },
-    [clearWrongTimeout, services],
+    [clearWrongTimeout, recordDealt, services],
   )
 
   const resetGame = useCallback(() => {
@@ -187,7 +189,8 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
     setFinalSeconds(null)
     setRank(null)
     setNotice(null)
-    setState((current) => emptyState(current.difficulty))
+    setRoundServices([])
+    setState((current) => emptyState(current.mode))
   }, [clearWrongTimeout])
 
   /** Drops the red highlight once the feedback window has passed. */
@@ -239,12 +242,19 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
           }
         }
 
-        // Wrong pick: clear the selection right away so the next click counts,
+        // Wrong pick: both words involved count as a mistake for the round.
+        const mistakes = { ...current.mistakes }
+        const involved = new Set([first?.pairId, second.pairId])
+        for (const pairId of involved) {
+          if (pairId !== undefined) mistakes[pairId] = (mistakes[pairId] ?? 0) + 1
+        }
+
+        // Clear the selection right away so the next click counts,
         // and flash both tiles red for a moment.
         clearWrongTimeout()
         wrongTimeoutRef.current = window.setTimeout(clearWrongHighlight, WRONG_FEEDBACK_MS)
 
-        return { ...current, selectedIds: [], wrongIds: selectedIds, attempts }
+        return { ...current, selectedIds: [], wrongIds: selectedIds, attempts, mistakes }
       })
     },
     [clearWrongHighlight, clearWrongTimeout],
@@ -259,24 +269,17 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
       state.startTime === null ? 1 : Math.max(1, Math.round((Date.now() - state.startTime) / 1000))
 
     setFinalSeconds(seconds)
-    recordMatchResult(state.difficulty, seconds, state.attempts)
+    recordMatchResult(state.mode, seconds, state.attempts)
     setRank(
       submitScore({
         name: playerNameRef.current,
-        difficulty: state.difficulty,
+        mode: state.mode,
         seconds,
         attempts: state.attempts,
-        stars: calculateStars(state.attempts, PAIR_COUNT[state.difficulty]),
+        stars: calculateStars(state.attempts, MATCH_PAIR_COUNT),
       }),
     )
-  }, [
-    state.isComplete,
-    state.startTime,
-    state.difficulty,
-    state.attempts,
-    recordMatchResult,
-    submitScore,
-  ])
+  }, [state.isComplete, state.startTime, state.mode, state.attempts, recordMatchResult, submitScore])
 
   const stars = useMemo<StarRating | null>(
     () => (state.isComplete ? calculateStars(state.attempts, pairCount) : null),
@@ -291,6 +294,7 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
     stars,
     rank,
     notice,
+    roundServices,
     startGame,
     selectCard,
     resetGame,

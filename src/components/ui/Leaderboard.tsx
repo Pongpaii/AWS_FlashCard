@@ -1,9 +1,10 @@
 import { formatSeconds } from '../../hooks/useMatchGame'
-import type { Difficulty, LeaderboardEntry } from '../../types'
+import type { LeaderboardEntry, MatchMode } from '../../types'
+import { MODE_META } from '../match/matchLabels'
 
 interface LeaderboardProps {
   entries: LeaderboardEntry[]
-  difficulty: Difficulty
+  mode: MatchMode
   /** Highlights the row just achieved, if it is on this board. */
   highlightId?: string
   /** Trims the table to the first N rows. */
@@ -41,14 +42,14 @@ function formatPlayedAt(iso: string): string {
   return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
 }
 
-/** Ranking table for one difficulty, fastest run first. */
-export function Leaderboard({ entries, difficulty, highlightId, limit }: LeaderboardProps) {
+/** Ranking table for one mode, fastest run first. */
+export function Leaderboard({ entries, mode, highlightId, limit }: LeaderboardProps) {
   const rows = limit === undefined ? entries : entries.slice(0, limit)
 
   if (rows.length === 0) {
     return (
       <p className="rounded-xl bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-        ยังไม่มีสถิติในระดับนี้ ลองเล่นเกมจับคู่ให้จบหนึ่งรอบเพื่อขึ้นกระดานเป็นคนแรก
+        ยังไม่มีสถิติในโหมดนี้ ลองเล่นเกมจับคู่ให้จบหนึ่งรอบเพื่อขึ้นกระดานเป็นคนแรก
       </p>
     )
   }
@@ -57,7 +58,7 @@ export function Leaderboard({ entries, difficulty, highlightId, limit }: Leaderb
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">
-          ตารางอันดับเกมจับคู่ระดับ {difficulty} เรียงจากเวลาที่เร็วที่สุด
+          ตารางอันดับเกมจับคู่โหมด{MODE_META[mode].label} เรียงจากเวลาที่เร็วที่สุด
         </caption>
         <thead>
           <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">

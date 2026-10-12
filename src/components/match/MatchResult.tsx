@@ -1,9 +1,11 @@
 import { formatSeconds } from '../../hooks/useMatchGame'
-import type { Difficulty, LeaderboardEntry, StarRating } from '../../types'
+import type { AWSService, LeaderboardEntry, MatchMode, StarRating } from '../../types'
 import { Leaderboard } from '../ui/Leaderboard'
+import { MODE_META } from './matchLabels'
+import { RoundReview } from './RoundReview'
 
 interface MatchResultProps {
-  difficulty: Difficulty
+  mode: MatchMode
   elapsedSeconds: number
   attempts: number
   stars: StarRating
@@ -12,14 +14,11 @@ interface MatchResultProps {
   leaderboard: LeaderboardEntry[]
   bestTime: number | null
   bestScore: number | null
+  /** Words dealt this round, for the star / mastery review. */
+  roundServices: readonly AWSService[]
+  mistakes: Readonly<Record<string, number>>
   onPlayAgain: () => void
   onBackHome: () => void
-}
-
-const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: 'ง่าย',
-  medium: 'กลาง',
-  hard: 'ยาก',
 }
 
 const STAR_MESSAGES: Record<StarRating, string> = {
@@ -28,18 +27,18 @@ const STAR_MESSAGES: Record<StarRating, string> = {
   1: 'ผ่านแล้ว ลองอีกรอบให้เปิดน้อยลง',
 }
 
-/** End-of-game summary: time, attempts, stars, and the stored best records. */
 /** Celebratory line for the rank that was just earned. */
 function rankHeadline(rank: number | null): string | null {
   if (rank === null) return null
-  if (rank === 1) return 'อันดับ 1 ของระดับนี้ ครองกระดานไปเลย'
-  if (rank === 2) return 'อันดับ 2 ของระดับนี้ เฉียดที่หนึ่งแล้ว'
-  if (rank === 3) return 'อันดับ 3 ของระดับนี้ ขึ้นโพเดียมสำเร็จ'
+  if (rank === 1) return 'อันดับ 1 ของโหมดนี้ ครองกระดานไปเลย'
+  if (rank === 2) return 'อันดับ 2 ของโหมดนี้ เฉียดที่หนึ่งแล้ว'
+  if (rank === 3) return 'อันดับ 3 ของโหมดนี้ ขึ้นโพเดียมสำเร็จ'
   return `ติดกระดานผู้นำที่อันดับ ${rank}`
 }
 
+/** End-of-game summary: time, attempts, stars, records, and the word review. */
 export function MatchResult({
-  difficulty,
+  mode,
   elapsedSeconds,
   attempts,
   stars,
@@ -47,15 +46,15 @@ export function MatchResult({
   leaderboard,
   bestTime,
   bestScore,
+  roundServices,
+  mistakes,
   onPlayAgain,
   onBackHome,
 }: MatchResultProps) {
   const headline = rankHeadline(rank)
   return (
     <div className="animate-fade-up rounded-xl bg-white p-8 text-center shadow-md ring-1 ring-slate-200">
-      <p className="text-sm font-medium text-slate-500">
-        จบเกมระดับ {DIFFICULTY_LABELS[difficulty]}
-      </p>
+      <p className="text-sm font-medium text-slate-500">จบเกมโหมด{MODE_META[mode].label}</p>
       <h2 className="mt-1 text-2xl font-bold text-slate-900">{STAR_MESSAGES[stars]}</h2>
 
       <p
@@ -93,10 +92,12 @@ export function MatchResult({
         </div>
       </dl>
 
+      <RoundReview services={roundServices} mode={mode} mistakes={mistakes} />
+
       <div className="mt-7 border-t border-slate-200 pt-6 text-left">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="text-base font-bold text-slate-900">
-            กระดานผู้นำ · ระดับ{DIFFICULTY_LABELS[difficulty]}
+            กระดานผู้นำ · โหมด{MODE_META[mode].label}
           </h3>
           {headline !== null ? (
             <p className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
@@ -111,7 +112,7 @@ export function MatchResult({
 
         <Leaderboard
           entries={leaderboard}
-          difficulty={difficulty}
+          mode={mode}
           highlightId={leaderboard[(rank ?? 0) - 1]?.id}
           limit={5}
         />
