@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AWSService, MatchCard } from '../types'
+import type { MatchItem, MatchCard } from '../types'
 import {
   BONUS_PAIR_COUNT,
   BONUS_START_SECONDS,
@@ -16,7 +16,7 @@ export type BonusStatus = 'idle' | 'playing' | 'cleared' | 'timeout'
 
 export interface BonusState {
   status: BonusStatus
-  services: AWSService[]
+  services: MatchItem[]
   cards: MatchCard[]
   selectedIds: string[]
   wrongIds: string[]
@@ -70,7 +70,7 @@ export function finalBonusScore(state: BonusState): number {
  * full-name hints, against a clock that gains time on hits and loses time on
  * misses. Consecutive hits build a combo multiplier.
  */
-export function useBonusRound(services: readonly AWSService[]) {
+export function useBonusRound(services: readonly MatchItem[]) {
   const { starredSet, masteryMap, recordBonusScore, progress } = useProgress()
   const [state, setState] = useState<BonusState>(idleState)
   const [now, setNow] = useState(() => Date.now())
@@ -88,11 +88,11 @@ export function useBonusRound(services: readonly AWSService[]) {
   useEffect(() => clearWrongTimeout, [clearWrongTimeout])
 
   const start = useCallback(
-    (roundMistakes: Readonly<Record<string, number>>) => {
+    (roundMistakes: Readonly<Record<string, number>>, pool: readonly MatchItem[] = services) => {
       clearWrongTimeout()
       recordedRef.current = false
       setIsNewBest(false)
-      const picked = pickBonusServices(services, BONUS_PAIR_COUNT, roundMistakes, {
+      const picked = pickBonusServices(pool, BONUS_PAIR_COUNT, roundMistakes, {
         starred: starredSet,
         mastery: masteryMap,
       })

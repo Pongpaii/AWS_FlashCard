@@ -12,6 +12,16 @@ export const MODE_META: Record<MatchMode, { label: string; blurb: string; tone: 
     blurb: 'จับคู่ชื่อ service กับคีย์เวิร์ดที่โจทย์ข้อสอบชอบใช้',
     tone: 'ring-sky-300 hover:bg-sky-50',
   },
+  caf: {
+    label: 'CAF',
+    blurb: 'Cloud Adoption Framework: perspective, phase, domain และ capability ↔ ความหมาย',
+    tone: 'ring-amber-300 hover:bg-amber-50',
+  },
+  waf: {
+    label: 'Well-Architected',
+    blurb: 'Well-Architected Framework: 6 pillars และ design principle ↔ pillar ที่สังกัด',
+    tone: 'ring-emerald-300 hover:bg-emerald-50',
+  },
 }
 
 /** Three-level memory marks, ordered best to worst for button rows. */

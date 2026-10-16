@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { CATEGORY_LABELS_TH, categoryCounts } from '../../data/awsServices'
 import { useBonusRound } from '../../hooks/useBonusRound'
-import { formatSeconds, useMatchGame } from '../../hooks/useMatchGame'
+import { formatSeconds, poolForMode, useMatchGame } from '../../hooks/useMatchGame'
+import { isFrameworkMode } from '../../data/frameworkMatch'
 import { useProgress } from '../../hooks/useProgress'
-import type { AWSService, CategoryFilterValue } from '../../types'
+import type { MatchItem, CategoryFilterValue } from '../../types'
 import { CATEGORIES, MATCH_MODES, MATCH_PAIR_COUNT } from '../../types'
 import { matchPool, remainingInCycle } from '../../utils/matchPicker'
 import { ANONYMOUS_NAME, MAX_PLAYER_NAME_LENGTH } from '../../utils/storage'
@@ -14,7 +15,7 @@ import { MatchResult } from './MatchResult'
 import { MODE_META } from './matchLabels'
 
 interface MatchGameProps {
-  services: readonly AWSService[]
+  services: readonly MatchItem[]
   onBackHome: () => void
 }
 
@@ -95,6 +96,7 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
           <h2 className="text-lg font-bold text-slate-900">2. เลือกหมวด (ไม่บังคับ)</h2>
           <p className="mt-1 text-sm text-slate-500">
             ถ้าหมวดที่เลือกมีไม่ถึง {MATCH_PAIR_COUNT} บริการ ระบบจะสุ่มจากทุกหมวดให้แทน
+            (ใช้กับโหมดความหมายและจำไปสอบ ส่วนโหมด CAF และ Well-Architected ใช้กองคำของตัวเอง)
           </p>
 
           <label className="mt-4 block">
@@ -131,6 +133,9 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
               const meta = MODE_META[mode]
               const best = bestTimeFor(mode)
               const bestAttempts = bestScoreFor(mode)
+              const modePool = isFrameworkMode(mode) ? poolForMode(mode, services) : null
+              const modeRemaining =
+                modePool === null ? null : remainingInCycle(modePool, progress.matchGame.recentIds)
 
               return (
                 <button
@@ -142,6 +147,11 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
                 >
                   <p className="text-xl font-bold text-slate-900">{meta.label}</p>
                   <p className="mt-0.5 text-sm text-slate-500">{meta.blurb}</p>
+                  {modePool !== null && (
+                    <p className="mt-2 w-fit rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                      เหลือ {modeRemaining}/{modePool.length} คำที่ยังไม่ได้เล่น
+                    </p>
+                  )}
                   <p className="mt-3 text-xs text-slate-500">
                     สถิติดีที่สุด:{' '}
                     <span className="font-semibold tabular-nums text-emerald-700">
@@ -248,7 +258,7 @@ export function MatchGame({ services, onBackHome }: MatchGameProps) {
           roundServices={roundServices}
           mistakes={state.mistakes}
           onPlayAgain={() => startGame(state.mode, category)}
-          onBonus={() => bonus.start(state.mistakes)}
+          onBonus={() => bonus.start(state.mistakes, poolForMode(state.mode, services))}
           onBackHome={onBackHome}
         />
       )}

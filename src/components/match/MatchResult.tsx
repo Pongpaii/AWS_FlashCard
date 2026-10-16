@@ -1,5 +1,5 @@
 import { formatSeconds } from '../../hooks/useMatchGame'
-import type { AWSService, LeaderboardEntry, MatchMode, StarRating } from '../../types'
+import type { MatchItem, LeaderboardEntry, MatchMode, StarRating } from '../../types'
 import { BONUS_PAIR_COUNT } from '../../utils/matchPicker'
 import { Leaderboard } from '../ui/Leaderboard'
 import { BonusRules } from './BonusRound'
@@ -17,7 +17,7 @@ interface MatchResultProps {
   bestTime: number | null
   bestScore: number | null
   /** Words dealt this round, for the star / mastery review. */
-  roundServices: readonly AWSService[]
+  roundServices: readonly MatchItem[]
   mistakes: Readonly<Record<string, number>>
   onPlayAgain: () => void
   /** Starts the Bonus Time round for this result. */

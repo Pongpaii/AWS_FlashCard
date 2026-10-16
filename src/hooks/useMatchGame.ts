@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { examKeywordsFor } from '../data/examKeywords'
+import { FRAMEWORK_MATCH_ITEMS, isFrameworkMode } from '../data/frameworkMatch'
 import type {
-  AWSService,
+  MatchItem,
   CategoryFilterValue,
   MatchCard,
   MatchGameState,
@@ -23,7 +24,7 @@ export const WRONG_FEEDBACK_MS = 700
  * Thai meaning (falling back to the meaning if a service has no keywords).
  */
 export function buildMatchCards(
-  services: readonly AWSService[],
+  services: readonly MatchItem[],
   mode: MatchMode = 'meaning',
   rng: RandomFn = Math.random,
 ): MatchCard[] {
@@ -52,6 +53,11 @@ export function buildMatchCards(
   }
 
   return shuffle(cards, rng)
+}
+
+/** The words a mode deals from: framework concepts for `caf` / `waf`, services otherwise. */
+export function poolForMode(mode: MatchMode, services: readonly MatchItem[]): readonly MatchItem[] {
+  return isFrameworkMode(mode) ? FRAMEWORK_MATCH_ITEMS[mode] : services
 }
 
 /** Two tiles match when they share a pairId but differ in type. */
@@ -90,7 +96,7 @@ function emptyState(mode: MatchMode): MatchGameState {
 }
 
 export interface UseMatchGameOptions {
-  services: readonly AWSService[]
+  services: readonly MatchItem[]
 }
 
 /** How far through the deck the player is. */
@@ -113,7 +119,7 @@ export interface UseMatchGameResult {
   /** Thai warning shown when the chosen category had too few services. */
   notice: string | null
   /** Services on the current board, in the order they were picked. */
-  roundServices: AWSService[]
+  roundServices: MatchItem[]
   /** Deck progress after the current board; null before the first board. */
   cycle: CycleInfo | null
   startGame: (mode: MatchMode, category?: CategoryFilterValue) => void
@@ -138,7 +144,7 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
   const [finalSeconds, setFinalSeconds] = useState<number | null>(null)
   const [rank, setRank] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [roundServices, setRoundServices] = useState<AWSService[]>([])
+  const [roundServices, setRoundServices] = useState<MatchItem[]>([])
   const [cycle, setCycle] = useState<CycleInfo | null>(null)
 
   // Read inside callbacks/effects without re-creating them on every progress change.
@@ -169,7 +175,8 @@ export function useMatchGame({ services }: UseMatchGameOptions): UseMatchGameRes
       recordedRef.current = false
 
       const context = pickContextRef.current
-      const pick = pickMatchServices(services, MATCH_PAIR_COUNT, category, {
+      // Framework modes have their own word pool and no service categories.
+      const pick = pickMatchServices(poolForMode(mode, services), MATCH_PAIR_COUNT, isFrameworkMode(mode) ? 'all' : category, {
         recentIds: context.recentIds,
         starred: context.starredSet,
         mastery: context.masteryMap,

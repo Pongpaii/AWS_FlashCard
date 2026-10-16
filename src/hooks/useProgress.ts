@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
 import { SERVICE_IDS, TOTAL_SERVICES } from '../data/awsServices'
+import { TRACKED_IDS } from '../data/frameworkMatch'
 import type {
   LeaderboardEntry,
   MasteryLevel,
@@ -101,7 +102,7 @@ const LIST_FOR_LEVEL: Record<MasteryLevel, MasteryList> = {
  */
 export function useProgressState(): UseProgressResult {
   // Lazy initialiser so localStorage is touched exactly once per mount.
-  const [progress, setProgress] = useState<UserProgress>(() => loadProgress(SERVICE_IDS))
+  const [progress, setProgress] = useState<UserProgress>(() => loadProgress(TRACKED_IDS))
 
   // Mirror of the latest state, so submitScore can compute a rank synchronously
   // instead of waiting for the next render.
@@ -122,7 +123,7 @@ export function useProgressState(): UseProgressResult {
   /** Shared logic for marking a card, keeping the three mastery lists disjoint. */
   const markCard = useCallback(
     (serviceId: string, target: MasteryList) => {
-      if (!SERVICE_IDS.has(serviceId)) return
+      if (!TRACKED_IDS.has(serviceId)) return
 
       commit((current) => {
         const { flashCards } = current
@@ -143,7 +144,10 @@ export function useProgressState(): UseProgressResult {
         return {
           ...current,
           flashCards: {
-            totalStudied: alreadyStudied ? flashCards.totalStudied : flashCards.totalStudied + 1,
+            totalStudied:
+              alreadyStudied || !SERVICE_IDS.has(serviceId)
+                ? flashCards.totalStudied
+                : flashCards.totalStudied + 1,
             ...lists,
             lastStudyDate: today,
             streak: calculateStreak(flashCards.lastStudyDate, today, flashCards.streak),
@@ -191,7 +195,7 @@ export function useProgressState(): UseProgressResult {
 
   const toggleStar = useCallback(
     (serviceId: string) => {
-      if (!SERVICE_IDS.has(serviceId)) return
+      if (!TRACKED_IDS.has(serviceId)) return
       commit((current) => ({
         ...current,
         starred: current.starred.includes(serviceId)
@@ -209,7 +213,7 @@ export function useProgressState(): UseProgressResult {
         matchGame: {
           ...current.matchGame,
           recentIds: [...new Set(dealtIds)]
-            .filter((id) => SERVICE_IDS.has(id))
+            .filter((id) => TRACKED_IDS.has(id))
             .slice(0, MAX_RECENT_IDS),
         },
       }))
@@ -352,15 +356,18 @@ export function useProgressState(): UseProgressResult {
   )
 
   const summary = useMemo<ProgressSummary>(() => {
-    const masteredCount = progress.flashCards.mastered.length
-    const learningCount = progress.flashCards.learning.length
-    const reviewingCount = progress.flashCards.reviewing.length
+    // Counters are about AWS services; framework words marked in the CAF / WAF
+    // match modes are tracked too but stay out of the "x / total services" stats.
+    const servicesOnly = (ids: readonly string[]) => ids.filter((id) => SERVICE_IDS.has(id)).length
+    const masteredCount = servicesOnly(progress.flashCards.mastered)
+    const learningCount = servicesOnly(progress.flashCards.learning)
+    const reviewingCount = servicesOnly(progress.flashCards.reviewing)
 
     return {
       masteredCount,
       learningCount,
       reviewingCount,
-      starredCount: progress.starred.length,
+      starredCount: servicesOnly(progress.starred),
       totalServices: TOTAL_SERVICES,
       masteredPercent:
         TOTAL_SERVICES === 0 ? 0 : Math.round((masteredCount / TOTAL_SERVICES) * 100),

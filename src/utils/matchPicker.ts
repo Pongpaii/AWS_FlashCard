@@ -1,4 +1,4 @@
-import type { AWSService, CategoryFilterValue, MasteryLevel, RandomFn } from '../types'
+import type { CategoryFilterValue, MasteryLevel, MatchItem, RandomFn } from '../types'
 
 /** What the picker needs to know about the learner. */
 export interface PickContext {
@@ -53,10 +53,10 @@ export function weightedSample<T>(
 
 /** The services a board draws from: the category, or everything when it is too small. */
 export function matchPool(
-  services: readonly AWSService[],
+  services: readonly MatchItem[],
   count: number,
   category: CategoryFilterValue,
-): { pool: readonly AWSService[]; usedFallback: boolean } {
+): { pool: readonly MatchItem[]; usedFallback: boolean } {
   const inCategory =
     category === 'all' ? services : services.filter((service) => service.category === category)
   const usedFallback = inCategory.length < count
@@ -64,13 +64,13 @@ export function matchPool(
 }
 
 /** How many words of the pool have not been dealt yet in the current cycle. */
-export function remainingInCycle(pool: readonly AWSService[], dealtIds: readonly string[]): number {
+export function remainingInCycle(pool: readonly MatchItem[], dealtIds: readonly string[]): number {
   const dealt = new Set(dealtIds)
   return pool.filter((service) => !dealt.has(service.id)).length
 }
 
 export interface MatchPick {
-  picked: AWSService[]
+  picked: MatchItem[]
   usedFallback: boolean
   /** True when the pool ran out and a new cycle started with this board. */
   cycleRestarted: boolean
@@ -93,7 +93,7 @@ export interface MatchPick {
  *    start a new cycle, and top up from the rest of the pool.
  */
 export function pickMatchServices(
-  services: readonly AWSService[],
+  services: readonly MatchItem[],
   count: number,
   category: CategoryFilterValue,
   context: PickContext,
@@ -113,7 +113,7 @@ export function pickMatchServices(
     }
   }
 
-  const weight = (service: AWSService) => weightFor(service.id, context)
+  const weight = (service: MatchItem) => weightFor(service.id, context)
   const dealt = new Set(dealtIds)
   const fresh = pool.filter((service) => !dealt.has(service.id))
 
@@ -173,12 +173,12 @@ export const BONUS_MAX_COMBO = 5
  * just played first, then the forgotten / starred ones, random among equals.
  */
 export function pickBonusServices(
-  services: readonly AWSService[],
+  services: readonly MatchItem[],
   count: number,
   roundMistakes: Readonly<Record<string, number>>,
   context: Omit<PickContext, 'recentIds'>,
   rng: RandomFn = Math.random,
-): AWSService[] {
+): MatchItem[] {
   const scoreContext: PickContext = { ...context, recentIds: [] }
   return services
     .map((service) => ({

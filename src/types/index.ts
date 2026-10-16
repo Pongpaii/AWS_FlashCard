@@ -32,11 +32,31 @@ export const CATEGORIES: readonly Category[] = [
  * What the second tile of each pair shows:
  * - `meaning`: the Thai description of the service.
  * - `keyword`: exam trigger keywords, the phrases CLF-C02 questions use.
+ * - `caf`: AWS Cloud Adoption Framework concepts instead of services.
+ * - `waf`: AWS Well-Architected Framework concepts instead of services.
  */
-export type MatchMode = 'meaning' | 'keyword'
+export type MatchMode = 'meaning' | 'keyword' | 'caf' | 'waf'
 
 /** Ordered list of every Match Game mode. */
-export const MATCH_MODES: readonly MatchMode[] = ['meaning', 'keyword'] as const
+export const MATCH_MODES: readonly MatchMode[] = ['meaning', 'keyword', 'caf', 'waf'] as const
+
+/** Modes whose board is dealt from framework concepts rather than AWS services. */
+export type FrameworkMatchMode = Extract<MatchMode, 'caf' | 'waf'>
+
+/**
+ * The minimum a Match Game word needs. `AWSService` satisfies it, and so do the
+ * framework concepts dealt in the `caf` / `waf` modes (which have no category).
+ */
+export interface MatchItem {
+  id: string
+  /** Text on the term tile. */
+  name: string
+  /** Second line on the term tile; hidden when equal to `name`. */
+  fullName: string
+  /** Text on the meaning tile. */
+  description: string
+  category?: Category
+}
 
 /** Every board is dealt at the former "hard" size. */
 export const MATCH_PAIR_COUNT = 8

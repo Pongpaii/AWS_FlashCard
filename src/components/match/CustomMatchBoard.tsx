@@ -71,6 +71,7 @@ export function CustomMatchBoard({
             card={card}
             isSelected={state.selectedIds.includes(card.id)}
             isWrong={state.wrongIds.includes(card.id)}
+            isStarred={false}
             onSelect={onSelectCard}
           />
         ))}

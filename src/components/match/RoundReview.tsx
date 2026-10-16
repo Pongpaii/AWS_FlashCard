@@ -1,11 +1,11 @@
 import { examKeywordsFor } from '../../data/examKeywords'
 import { useProgress } from '../../hooks/useProgress'
-import type { AWSService, MatchMode } from '../../types'
+import type { MatchItem, MatchMode } from '../../types'
 import { suggestMastery } from '../../utils/matchPicker'
 import { MASTERY_LEVELS, MASTERY_META } from './matchLabels'
 
 interface RoundReviewProps {
-  services: readonly AWSService[]
+  services: readonly MatchItem[]
   mode: MatchMode
   /** pairId -> wrong picks during the round. */
   mistakes: Readonly<Record<string, number>>
