@@ -997,10 +997,10 @@ export const awsServices: AWSService[] = [
     name: 'Support Plans',
     fullName: 'AWS Support Plans',
     category: 'Billing',
-    description: 'แผนบริการสนับสนุน 4 ระดับที่ต่างกันที่เวลาตอบและสิทธิ์ที่ได้',
+    description: 'แผนบริการสนับสนุน 5 ระดับที่ต่างกันที่เวลาตอบและสิทธิ์ที่ได้',
     answer:
-      'มี 4 ระดับ: Basic (ฟรี), Developer (ตอบทางอีเมลในเวลาทำการ), Business (ตอบ 24/7 ทางโทรศัพท์และแชต เข้าถึง Trusted Advisor ครบ) และ Enterprise (มี Technical Account Manager และตอบเคสวิกฤตใน 15 นาที)',
-    hint: 'จำเวลาตอบเคสวิกฤต: Business = 1 ชั่วโมง, Enterprise = 15 นาที',
+      'มี 5 ระดับ: Basic (ฟรี เปิดเคสทางเทคนิคไม่ได้), Developer (ตอบทางอีเมลในเวลาทำการ), Business (ตอบ 24/7 ทางโทรศัพท์และแชต ได้ Trusted Advisor ครบทุก check), Enterprise On-Ramp (เข้าถึง TAM แบบทีมกลาง ตอบเคสวิกฤตใน 30 นาที) และ Enterprise (มี TAM ประจำ ตอบเคสวิกฤตใน 15 นาที)',
+    hint: 'จำเวลาตอบ: production ล่ม = 1 ชั่วโมง (Business ขึ้นไป), ระบบวิกฤตล่ม = 30 นาที (On-Ramp) และ 15 นาที (Enterprise)',
     examTips:
       'Technical Account Manager (TAM) มีเฉพาะ Enterprise (และ Enterprise On-Ramp) — เป็นคำถามที่ออกสอบบ่อยมาก',
   },
@@ -1019,6 +1019,11 @@ export const awsServices: AWSService[] = [
 
 /** Fast lookup of every valid service id; used to sanitise stored progress. */
 export const SERVICE_IDS: ReadonlySet<string> = new Set(awsServices.map((service) => service.id))
+
+/** Lookup one service by id, for cross-linking from other datasets. */
+export const serviceById: ReadonlyMap<string, AWSService> = new Map(
+  awsServices.map((service) => [service.id, service]),
+)
 
 /** Total number of services in the dataset. */
 export const TOTAL_SERVICES = awsServices.length
