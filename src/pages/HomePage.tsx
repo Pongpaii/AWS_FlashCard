@@ -8,6 +8,92 @@ import { useProgress } from '../hooks/useProgress'
 import type { MatchMode } from '../types'
 import { MATCH_MODES, MATCH_PAIR_COUNT } from '../types'
 
+interface HomeCard {
+  to: string
+  ariaLabel: string
+  icon: string
+  title: string
+  blurb: string
+}
+
+/** MVP: the three core study modes, shown as large cards. */
+const MVP_CARDS: (HomeCard & { iconBg: string; hover: string })[] = [
+  {
+    to: '/learn',
+    ariaLabel: 'เข้าโหมดเรียนรู้',
+    icon: '📘',
+    iconBg: 'bg-emerald-100',
+    hover: 'group-hover:text-emerald-600',
+    title: 'เรียนรู้',
+    blurb: 'อ่านทบทวนทุกบริการแยกตามหมวด พร้อมหน้าที่หลัก เคล็ดลับจำ และจุดที่มักออกสอบ ค้นหาได้',
+  },
+  {
+    to: '/flashcards',
+    ariaLabel: 'เข้าโหมด Flash Cards',
+    icon: '🗂️',
+    iconBg: 'bg-orange-100',
+    hover: 'group-hover:text-orange-600',
+    title: 'Flash Cards',
+    blurb: 'พลิกการ์ดดูคำตอบ ทำเครื่องหมายว่าจำได้หรือยังไม่แม่น กรองตามหมวด และใช้คีย์ลัดได้',
+  },
+  {
+    to: '/match',
+    ariaLabel: 'เข้าโหมดเกมจับคู่',
+    icon: '🎯',
+    iconBg: 'bg-indigo-100',
+    hover: 'group-hover:text-indigo-600',
+    title: 'เกมจับคู่',
+    blurb:
+      'จับคู่ service กับความหมายหรือคีย์เวิร์ดที่ออกสอบ หรือเล่นโหมด CAF / Well-Architected ติดดาวคำที่อยากเน้นได้',
+  },
+]
+
+/** Extra study pages, shown as a compact list under the MVP cards. */
+const MORE_CARDS: HomeCard[] = [
+  {
+    to: '/quiz',
+    ariaLabel: 'เข้าโหมดควิซตามสถานการณ์',
+    icon: '🧠',
+    title: 'ควิซสถานการณ์',
+    blurb: 'โจทย์สไตล์ข้อสอบ CLF-C02 พร้อมคำอธิบาย',
+  },
+  {
+    to: '/well-architected',
+    ariaLabel: 'ดูสรุป AWS Well-Architected Framework',
+    icon: '🏛️',
+    title: 'Well-Architected',
+    blurb: '6 pillar, design principles และแบบฝึกจับ pillar',
+  },
+  {
+    to: '/caf',
+    ariaLabel: 'ดูสรุป AWS Cloud Adoption Framework',
+    icon: '🧭',
+    title: 'CAF',
+    blurb: '6 perspectives, 4 phases, 4 domains และตารางเทียบกับ WAF',
+  },
+  {
+    to: '/pricing',
+    ariaLabel: 'เข้าหน้าเรียนรู้เรื่องราคาและค่าใช้จ่าย',
+    icon: '💰',
+    title: 'Pricing',
+    blurb: 'รูปแบบราคา ตัวเลขที่ต้องจำ และแบบฝึก',
+  },
+  {
+    to: '/support',
+    ariaLabel: 'ดูสรุปแผน AWS Support',
+    icon: '🛟',
+    title: 'Support Plans',
+    blurb: 'เทียบแผน support ทั้ง 5 ระดับ',
+  },
+  {
+    to: '/custom-match',
+    ariaLabel: 'สร้างเกมจับคู่แบบกำหนดเอง',
+    icon: '🎛️',
+    title: 'จับคู่กำหนดเอง',
+    blurb: 'เลือกเนื้อหาและจำนวนคู่เอง ผสมข้ามหมวดได้',
+  },
+]
+
 /** Landing screen: mode picker, overall stats, and a quick resume shortcut. */
 export function HomePage() {
   const { summary, bestTimeFor, bestScoreFor, resetProgress, leaderboardFor, clearLeaderboard } =
@@ -50,182 +136,55 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link
-          to="/learn"
-          aria-label="เข้าโหมดเรียนรู้"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-emerald-100 text-xl"
+      <section aria-label="โหมดหลัก" className="grid gap-4 sm:grid-cols-3">
+        {MVP_CARDS.map((card) => (
+          <Link
+            key={card.to}
+            to={card.to}
+            aria-label={card.ariaLabel}
+            className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
           >
-            📘
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-emerald-600">
-            เรียนรู้
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            อ่านทบทวนทุกบริการแยกตามหมวด พร้อมหน้าที่หลัก เคล็ดลับจำ และจุดที่มักออกสอบ ค้นหาได้
-          </p>
-        </Link>
+            <span
+              aria-hidden="true"
+              className={`grid h-11 w-11 place-items-center rounded-lg text-xl ${card.iconBg}`}
+            >
+              {card.icon}
+            </span>
+            <h2 className={`mt-3 text-xl font-bold text-slate-900 ${card.hover}`}>{card.title}</h2>
+            <p className="mt-1 text-sm text-slate-600">{card.blurb}</p>
+          </Link>
+        ))}
+      </section>
 
-        <Link
-          to="/well-architected"
-          aria-label="ดูสรุป AWS Well-Architected Framework"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-purple-100 text-xl"
-          >
-            🏛️
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-purple-600">
-            Well-Architected
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            6 pillar กับ design principles ทั้งหมด พร้อมตัวช่วยจำ คู่ที่มักสับสน
-            และแบบฝึกจับ pillar จากสถานการณ์
-          </p>
-        </Link>
-
-        <Link
-          to="/caf"
-          aria-label="ดูสรุป AWS Cloud Adoption Framework"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-indigo-100 text-xl"
-          >
-            🧭
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-indigo-600">
-            CAF
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Cloud Adoption Framework: 6 perspectives, 4 phases, 4 domains พร้อมแบบฝึกจับ
-            perspective และตารางเทียบกับ Well-Architected
-          </p>
-        </Link>
-
-        <Link
-          to="/custom-match"
-          aria-label="สร้างเกมจับคู่แบบกำหนดเอง"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-rose-100 text-xl"
-          >
-            🎛️
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-rose-600">
-            จับคู่กำหนดเอง
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            เลือกเองว่าจะจับคู่เรื่องอะไร ผสมข้ามหมวดได้ทั้ง services, Well-Architected, CAF
-            และ Pricing เลือกจำนวนคู่ได้ 4 ถึง 12
-          </p>
-        </Link>
-
-        <Link
-          to="/pricing"
-          aria-label="เข้าหน้าเรียนรู้เรื่องราคาและค่าใช้จ่าย"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-emerald-100 text-xl"
-          >
-            💰
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-emerald-600">
-            Pricing
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            4 แท็บในหน้าเดียว: เรียนรู้ ตัวเลขที่ต้องจำ ทายรูปแบบราคาให้ไว และเกมจับคู่ศัพท์เรื่องราคา
-          </p>
-        </Link>
-
-        <Link
-          to="/support"
-          aria-label="ดูสรุปแผน AWS Support"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-amber-100 text-xl"
-          >
-            🛟
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-amber-600">
-            Support Plans
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            เทียบแผน support ทั้ง 5 ระดับ เวลาตอบกลับตามความรุนแรงของเคส สิทธิ์ TAM
-            และคำใบ้ในโจทย์ที่ชี้ไปแต่ละแผน
-          </p>
-        </Link>
-
-        <Link
-          to="/quiz"
-          aria-label="เข้าโหมดควิซตามสถานการณ์"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-sky-100 text-xl"
-          >
-            🧠
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-sky-600">
-            ควิซสถานการณ์
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            โจทย์สไตล์ข้อสอบ CLF-C02 ให้สถานการณ์มาแล้วเลือกคำตอบ พร้อมคำอธิบายว่าทำไมข้ออื่นไม่ใช่
-          </p>
-        </Link>
-
-        <Link
-          to="/flashcards"
-          aria-label="เข้าโหมด Flash Cards"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-orange-100 text-xl"
-          >
-            🗂️
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-orange-600">
-            Flash Cards
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            พลิกการ์ดดูคำตอบ ทำเครื่องหมายว่าจำได้หรือยังไม่แม่น กรองตามหมวด และใช้คีย์ลัดได้
-          </p>
-        </Link>
-
-        <Link
-          to="/match"
-          aria-label="เข้าโหมดเกมจับคู่"
-          className="group rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200 transition-shadow hover:shadow-lg"
-        >
-          <span
-            aria-hidden="true"
-            className="grid h-11 w-11 place-items-center rounded-lg bg-indigo-100 text-xl"
-          >
-            🎯
-          </span>
-          <h2 className="mt-3 text-xl font-bold text-slate-900 group-hover:text-indigo-600">
-            เกมจับคู่
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            เห็นการ์ดทุกใบตั้งแต่แรก จับคู่ชื่อ service กับความหมาย หรือกับคีย์เวิร์ดที่ออกสอบ
-            ติดดาวคำที่อยากเน้น และไม่สุ่มคำซ้ำกับรอบก่อน
-          </p>
-        </Link>
+      <section
+        aria-labelledby="more-topics"
+        className="rounded-xl bg-white p-5 shadow-md ring-1 ring-slate-200"
+      >
+        <h2 id="more-topics" className="text-base font-bold text-slate-900">
+          เนื้อหาเพิ่มเติม
+        </h2>
+        <p className="mt-0.5 text-xs text-slate-500">
+          สรุปเฉพาะเรื่อง แบบฝึก และควิซ เปิดได้จากเมนู “เพิ่มเติม” ด้านบนด้วย
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {MORE_CARDS.map((card) => (
+            <li key={card.to}>
+              <Link
+                to={card.to}
+                aria-label={card.ariaLabel}
+                className="flex items-start gap-3 rounded-lg p-2.5 transition-colors hover:bg-slate-50"
+              >
+                <span aria-hidden="true" className="text-lg leading-6">
+                  {card.icon}
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-slate-800">{card.title}</span>
+                  <span className="block text-xs text-slate-500">{card.blurb}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200">
