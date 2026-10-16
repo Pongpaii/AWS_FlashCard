@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { SupportPlanArticle } from '../components/learn/SupportPlanArticle'
 import { SupportPlanComparison } from '../components/learn/SupportPlanComparison'
+import { SupportTableGame } from '../components/learn/SupportTableGame'
 import {
   SUPPORT_PLAN_NOTICE,
   SUPPORT_PLAN_SOURCES,
@@ -35,9 +36,17 @@ export function SupportPlanPage() {
             {plan.name}
           </a>
         ))}
+        <a
+          href="#table-game"
+          className="ml-auto rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-indigo-700 ring-1 ring-indigo-200 transition-colors hover:bg-indigo-50"
+        >
+          เกมจำตาราง ↓
+        </a>
       </nav>
 
       <SupportPlanComparison />
+
+      <SupportTableGame />
 
       <section className="rounded-xl bg-indigo-50 p-5 ring-1 ring-indigo-100">
         <h2 className="text-lg font-bold text-indigo-900">อ่านโจทย์แล้วตอบให้ไว</h2>

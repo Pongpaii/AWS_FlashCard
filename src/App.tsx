@@ -10,6 +10,7 @@ import { LearnPage } from './pages/LearnPage'
 import { MatchGamePage } from './pages/MatchGamePage'
 import { PricingPage } from './pages/PricingPage'
 import { QuizPage } from './pages/QuizPage'
+import { ResponsibilityPage } from './pages/ResponsibilityPage'
 import { SupportPlanPage } from './pages/SupportPlanPage'
 import { WellArchitectedPage } from './pages/WellArchitectedPage'
 
@@ -29,6 +30,7 @@ function AppShell() {
           <Route path="/caf" element={<CafPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/support" element={<SupportPlanPage />} />
+          <Route path="/responsibility" element={<ResponsibilityPage />} />
           <Route path="/flashcards" element={<FlashCardPage />} />
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/match" element={<MatchGamePage />} />

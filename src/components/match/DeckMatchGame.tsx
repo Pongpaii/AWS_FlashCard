@@ -8,6 +8,8 @@ interface DeckMatchGameProps {
   /** Groups offered here; all are selected to begin with. */
   groups: MatchGroup[]
   defaultPairCount?: number
+  /** Heading of the setup card, also used in the start button label. */
+  title?: string
 }
 
 /**
@@ -15,7 +17,11 @@ interface DeckMatchGameProps {
  * pairs, play. Same engine as the full custom builder, just fewer choices, so it
  * can be embedded inside a topic page.
  */
-export function DeckMatchGame({ groups, defaultPairCount = 6 }: DeckMatchGameProps) {
+export function DeckMatchGame({
+  groups,
+  defaultPairCount = 6,
+  title = 'เกมจับคู่เรื่องราคา',
+}: DeckMatchGameProps) {
   const { state, hasStarted, finalSeconds, stars, startGame, selectCard, replay, resetGame } =
     useCustomMatch()
 
@@ -49,7 +55,7 @@ export function DeckMatchGame({ groups, defaultPairCount = 6 }: DeckMatchGamePro
 
   return (
     <section className="rounded-xl bg-white p-5 shadow-md ring-1 ring-slate-200">
-      <h2 className="text-lg font-bold text-slate-900">เกมจับคู่เรื่องราคา</h2>
+      <h2 className="text-lg font-bold text-slate-900">{title}</h2>
       <p className="mt-1 text-sm text-slate-600">
         เลือกชุดที่อยากฝึกแล้วกดเริ่ม รอบนี้ไม่บันทึกลงกระดานผู้นำ ฝึกซ้ำได้ไม่จำกัด
       </p>
@@ -126,7 +132,7 @@ export function DeckMatchGame({ groups, defaultPairCount = 6 }: DeckMatchGamePro
         type="button"
         disabled={!canStart}
         onClick={() => startGame(pairs, requestedPairs)}
-        aria-label="เริ่มเกมจับคู่เรื่องราคา"
+        aria-label={`เริ่ม${title}`}
         className="mt-4 rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 disabled:bg-slate-200 disabled:text-slate-400"
       >
         เริ่มเล่น

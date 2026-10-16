@@ -83,7 +83,14 @@ const MORE_CARDS: HomeCard[] = [
     ariaLabel: 'ดูสรุปแผน AWS Support',
     icon: '🛟',
     title: 'Support Plans',
-    blurb: 'เทียบแผน support ทั้ง 5 ระดับ',
+    blurb: 'เทียบแผน support ทั้ง 5 ระดับ พร้อมเกมจำตาราง',
+  },
+  {
+    to: '/responsibility',
+    ariaLabel: 'ดูสรุป AWS Shared Responsibility Model',
+    icon: '🤝',
+    title: 'Shared Responsibility',
+    blurb: 'AWS ดูแลอะไร ลูกค้าดูแลอะไร พร้อมเกมจำ',
   },
   {
     to: '/custom-match',

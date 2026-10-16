@@ -109,14 +109,21 @@ export function LearnPage() {
           >
             Pricing &amp; Billing
           </Link>{' '}
-          (รูปแบบราคา ตัวเลข และเกมจับคู่) และ{' '}
+          (รูปแบบราคา ตัวเลข และเกมจับคู่),{' '}
           <Link
             to="/support"
             className="font-semibold text-amber-700 underline decoration-dotted hover:text-amber-800"
           >
             AWS Support Plans
           </Link>{' '}
-          (ตารางเทียบทั้ง 5 แผน)
+          (ตารางเทียบทั้ง 5 แผน) และ{' '}
+          <Link
+            to="/responsibility"
+            className="font-semibold text-sky-700 underline decoration-dotted hover:text-sky-800"
+          >
+            Shared Responsibility Model
+          </Link>{' '}
+          (AWS ดูแลอะไร ลูกค้าดูแลอะไร)
         </p>
       </div>
 

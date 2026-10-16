@@ -21,6 +21,7 @@ const MORE_LINKS = [
   { to: '/caf', label: 'CAF' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/support', label: 'Support Plans' },
+  { to: '/responsibility', label: 'Shared Responsibility' },
   { to: '/custom-match', label: 'จับคู่กำหนดเอง' },
 ] as const
 

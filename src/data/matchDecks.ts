@@ -3,6 +3,7 @@ import { CATEGORIES } from '../types'
 import { CATEGORY_LABELS_TH, awsServices } from './awsServices'
 import { cafDomains, cafPerspectives, cafPhases } from './cloudAdoptionFramework'
 import { pricingModelPairs, pricingRulePairs, pricingToolPairs } from './pricingTerms'
+import { srmConceptPairs, srmServicePairs } from './sharedResponsibility'
 import { wellArchitectedPillars } from './wellArchitected'
 
 /**
@@ -201,6 +202,25 @@ export const matchDecks: MatchDeck[] = [
       },
     ],
   },
+  {
+    id: 'responsibility',
+    label: 'Shared Responsibility',
+    description: 'ใครรับผิดชอบอะไร: OF vs IN the cloud, ชนิดของ control และเส้นแบ่งตามชนิดบริการ',
+    groups: [
+      {
+        id: 'srm-concepts',
+        label: 'แนวคิดและชนิดของ control',
+        hint: 'ชื่อแนวคิด ↔ ความหมาย',
+        pairs: srmConceptPairs,
+      },
+      {
+        id: 'srm-services',
+        label: 'เส้นแบ่งตามชนิดบริการ',
+        hint: 'ชื่อบริการ ↔ ใครทำอะไร',
+        pairs: srmServicePairs,
+      },
+    ],
+  },
 ]
 
 /** Flat lookup of every group by id. */
@@ -281,6 +301,13 @@ export const MATCH_PRESETS: {
     label: 'Pricing ทั้งชุด',
     blurb: 'รูปแบบราคา เครื่องมือ และกฎการคิดเงิน',
     groupIds: ['pricing-models', 'pricing-tools', 'pricing-rules'],
+    pairCount: 8,
+  },
+  {
+    id: 'preset-srm',
+    label: 'Shared Responsibility',
+    blurb: 'แนวคิด OF/IN the cloud และเส้นแบ่งของ EC2, RDS, Lambda, S3',
+    groupIds: ['srm-concepts', 'srm-services'],
     pairCount: 8,
   },
   {

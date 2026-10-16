@@ -222,6 +222,19 @@ export interface SupportFeatureRow {
   values: Record<SupportPlanTier, string | boolean>
 }
 
+/** Who owns a control under the AWS Shared Responsibility Model. */
+export type ResponsibilityOwner = 'aws' | 'customer' | 'shared'
+
+/** One task in the Shared Responsibility Model, written as a recall item. */
+export interface ResponsibilityItem {
+  id: string
+  /** Short Thai description of the task, e.g. "แพตช์ guest OS บน EC2". */
+  task: string
+  owner: ResponsibilityOwner
+  /** Why that owner, shown after the answer is revealed. */
+  why: string
+}
+
 /** Flash Card session state owned by useFlashCards. */
 export interface FlashCardState {
   currentIndex: number
