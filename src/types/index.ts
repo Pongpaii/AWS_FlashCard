@@ -1,15 +1,20 @@
 // Domain types shared across the whole app. Kept free of React imports on purpose
 // so that pure utilities can depend on them without pulling in the UI layer.
 
-/** The ten AWS service categories covered by the CLF-C02 exam blueprint. */
+/** The AWS service categories covered by the CLF-C02 exam blueprint. */
 export type Category =
   | 'Compute'
   | 'Storage'
   | 'Database'
+  | 'Analytics'
   | 'Networking'
   | 'Security'
   | 'Serverless'
   | 'Management'
+  | 'Developer Tools'
+  | 'Business Apps'
+  | 'End-User Computing'
+  | 'IoT'
   | 'AI/ML'
   | 'Migration'
   | 'Billing'
@@ -19,10 +24,15 @@ export const CATEGORIES: readonly Category[] = [
   'Compute',
   'Storage',
   'Database',
+  'Analytics',
   'Networking',
   'Security',
   'Serverless',
   'Management',
+  'Developer Tools',
+  'Business Apps',
+  'End-User Computing',
+  'IoT',
   'AI/ML',
   'Migration',
   'Billing',

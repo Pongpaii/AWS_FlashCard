@@ -1,6 +1,7 @@
 import type { KeyboardEvent } from 'react'
 import { CATEGORY_LABELS_TH, CATEGORY_STYLES } from '../../data/awsServices'
 import type { AWSService } from '../../types'
+import { ServiceIcon } from '../ui/ServiceIcon'
 
 interface FlashCardProps {
   service: AWSService
@@ -43,6 +44,8 @@ export function FlashCard({ service, isFlipped, onFlip }: FlashCardProps) {
             {CATEGORY_LABELS_TH[service.category]} · {service.category}
           </span>
 
+          <ServiceIcon serviceId={service.id} size={72} className="mt-2" />
+
           <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
             {service.name}
           </h2>
@@ -54,7 +57,7 @@ export function FlashCard({ service, isFlipped, onFlip }: FlashCardProps) {
         {/* Back: answer, memory hint, and exam tips when available. */}
         <div className="flip-face flip-face--back flex flex-col gap-4 overflow-y-auto rounded-xl bg-white p-6 shadow-md ring-1 ring-slate-200">
           <div className="flex items-center gap-2">
-            <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${style.dot}`} />
+            <ServiceIcon serviceId={service.id} size={32} />
             <h3 className="text-xl font-bold text-slate-900">{service.name}</h3>
             <span className="text-sm text-slate-400">{service.fullName}</span>
           </div>

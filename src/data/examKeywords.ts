@@ -17,6 +17,7 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   'aws-batch': ['Batch jobs', 'Job queue', 'Large-scale processing'],
   outposts: ['AWS hardware on-premises', 'Hybrid rack', 'Same APIs in your DC'],
   wavelength: ['5G network edge', 'Telecom carrier', 'Ultra-low latency mobile'],
+  ecr: ['Store container images', 'Private image registry', 'Image vulnerability scan'],
 
   // Storage
   s3: ['Object storage', 'Unlimited capacity', 'Static website hosting'],
@@ -26,6 +27,8 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   'storage-gateway': ['Hybrid storage', 'On-premises to cloud', 'File / Volume / Tape'],
   'snow-family': ['Offline data transfer', 'Petabytes physically shipped', 'Edge / no internet'],
   fsx: ['Windows File Server', 'Lustre / HPC', 'Third-party file systems'],
+  'aws-backup': ['Centralized backup policy', 'Across many services', 'Cross-account / cross-Region copies'],
+  'elastic-disaster-recovery': ['Low RPO / RTO', 'Continuous server replication', 'Fail over to AWS'],
 
   // Database
   rds: ['Managed relational', 'MySQL / PostgreSQL / Oracle', 'Multi-AZ, Read Replica'],
@@ -36,6 +39,13 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   neptune: ['Graph database', 'Social network relationships', 'Recommendation graph'],
   documentdb: ['Document database', 'MongoDB-compatible', 'JSON documents'],
   qldb: ['Immutable ledger', 'Cryptographically verifiable', 'Central trusted authority'],
+
+  // Analytics
+  athena: ['SQL directly on S3', 'Serverless queries', 'Pay per data scanned'],
+  emr: ['Hadoop / Spark', 'Big data clusters', 'Process huge datasets'],
+  glue: ['Serverless ETL', 'Data Catalog', 'Crawlers discover schema'],
+  opensearch: ['Full-text search', 'Log analytics', 'Elasticsearch successor'],
+  quicksight: ['BI dashboards', 'Data visualization', 'Interactive reports'],
 
   // Networking
   vpc: ['Isolated private network', 'Subnets & route tables', 'Your own IP range'],
@@ -50,6 +60,8 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   'transit-gateway': ['Hub-and-spoke', 'Connect many VPCs', 'Central network hub'],
   'nat-gateway': ['Private subnet outbound', 'Internet for private instances', 'No inbound'],
   'global-accelerator': ['Static anycast IPs', 'AWS global backbone', 'Non-HTTP performance'],
+  privatelink: ['Interface VPC endpoint', 'Private access to services', 'Traffic never on internet'],
+  'client-vpn': ['Remote employees connect', 'Per-user VPN', 'OpenVPN client'],
 
   // Security
   iam: ['Users, groups, roles', 'Policies / permissions', 'Least privilege'],
@@ -67,6 +79,11 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   artifact: ['Compliance reports', 'SOC / PCI / ISO documents', 'Download agreements'],
   acm: ['SSL/TLS certificates', 'HTTPS', 'Auto renewal'],
   'secrets-manager': ['Store DB passwords', 'Automatic rotation', 'API keys / credentials'],
+  cognito: ['App sign-up / sign-in', 'Social login', 'User pools'],
+  detective: ['Investigate root cause', 'Security behavior graph', 'Analyze findings'],
+  'directory-service': ['Managed Microsoft AD', 'Active Directory', 'Domain join'],
+  'firewall-manager': ['Central firewall rules', 'All accounts in organization', 'WAF / SG policies'],
+  ram: ['Share resources across accounts', 'Share subnets', 'Avoid duplicate resources'],
 
   // Serverless / integration
   'step-functions': ['Workflow orchestration', 'State machine', 'Coordinate steps'],
@@ -84,6 +101,33 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   organizations: ['Multiple accounts', 'Service Control Policies', 'Central management'],
   'control-tower': ['Landing zone', 'Multi-account guardrails', 'Automated setup'],
   'health-dashboard': ['AWS service events', 'Outages affecting you', 'Scheduled maintenance'],
+  'auto-scaling': ['Scale out / in automatically', 'Match demand', 'Scaling policies'],
+  'compute-optimizer': ['Right-sizing', 'Over-provisioned resources', 'ML-based recommendations'],
+  'license-manager': ['Track software licenses', 'BYOL compliance', 'Microsoft / Oracle limits'],
+  'management-console': ['Web-based UI', 'Point-and-click', 'Browser access'],
+  'service-catalog': ['Approved IT products', 'Self-service provisioning', 'Governed templates'],
+  'service-quotas': ['Service limits', 'Request limit increase', 'Per-Region caps'],
+  'well-architected-tool': ['Review workloads', 'Six pillars questions', 'Improvement plan'],
+
+  // Developer tools
+  'aws-cli': ['Command line', 'Scripts automation', 'Terminal commands'],
+  codebuild: ['Compile source code', 'Run tests', 'Continuous integration'],
+  codepipeline: ['CI/CD pipeline', 'Automate releases', 'Source → build → deploy'],
+  'x-ray': ['Distributed tracing', 'Debug performance', 'Service map'],
+  appsync: ['GraphQL API', 'Real-time subscriptions', 'Combine data sources'],
+  amplify: ['Full-stack web & mobile', 'Frontend developers', 'Hosting + auth fast'],
+
+  // Business applications
+  connect: ['Cloud contact center', 'Call routing / recording', 'Customer service calls'],
+  ses: ['Bulk email', 'Marketing / transactional email', 'High-volume sending'],
+
+  // End-user computing
+  appstream: ['Stream desktop apps', 'Apps in a browser', 'SaaS without code changes'],
+  workspaces: ['Virtual desktop (VDI)', 'Desktop as a Service', 'Full desktop anywhere'],
+  'workspaces-secure-browser': ['Secure remote browser', 'Web apps only', 'No VPN / client'],
+
+  // IoT
+  'iot-core': ['Connect IoT devices', 'MQTT messaging', 'Sensors to cloud'],
 
   // AI / ML
   sagemaker: ['Build, train, deploy ML', 'Data scientists', 'Custom models'],
@@ -97,11 +141,15 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   kendra: ['Intelligent enterprise search', 'Natural-language questions', 'Search documents'],
   textract: ['Extract text from scans', 'Forms & tables', 'Beyond OCR'],
   personalize: ['Recommendations', 'Real-time personalization', '"Customers also bought"'],
+  'amazon-q': ['Generative AI assistant', 'Code suggestions', 'Answers from company data'],
 
   // Migration
   dms: ['Migrate databases', 'Minimal downtime', 'Heterogeneous (SCT)'],
   'migration-hub': ['Track migration progress', 'Single place', 'Across tools'],
   mgn: ['Rehost servers', 'Lift-and-shift automation', 'Block-level replication'],
+  'application-discovery': ['Discover on-premises servers', 'Map dependencies', 'Plan migration'],
+  'migration-evaluator': ['Migration business case', 'Projected cloud cost', 'TCO assessment'],
+  sct: ['Convert database schema', 'Oracle → Aurora', 'Heterogeneous migration'],
 
   // Billing
   'free-tier': ['Always free / 12 months', 'Try at no cost', 'Usage limits'],
@@ -114,6 +162,7 @@ export const EXAM_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   'spot-instances': ['Up to 90% off', 'Can be interrupted', 'Fault-tolerant jobs'],
   'support-plans': ['Basic / Developer / Business / Enterprise', 'TAM', 'Response times'],
   marketplace: ['Third-party software', 'Buy & deploy AMIs', 'Billed through AWS'],
+  'cost-usage-report': ['Most detailed billing data', 'Hourly line items', 'Delivered to S3'],
 }
 
 /** Keywords for a service, falling back to an empty list when none are defined. */

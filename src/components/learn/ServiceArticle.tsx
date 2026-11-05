@@ -1,5 +1,6 @@
 import { CATEGORY_LABELS_TH, CATEGORY_STYLES } from '../../data/awsServices'
 import type { AWSService } from '../../types'
+import { ServiceIcon } from '../ui/ServiceIcon'
 
 interface ServiceArticleProps {
   service: AWSService
@@ -25,6 +26,7 @@ export function ServiceArticle({ service, status }: ServiceArticleProps) {
   return (
     <article className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <header className="flex flex-wrap items-start gap-x-3 gap-y-2">
+        <ServiceIcon serviceId={service.id} size={44} />
         <div className="min-w-0 flex-1">
           <h3 className="text-xl font-bold leading-tight text-slate-900">{service.name}</h3>
           <p className="text-sm text-slate-500">{service.fullName}</p>

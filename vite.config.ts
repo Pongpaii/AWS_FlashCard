@@ -8,4 +8,9 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
   },
+  build: {
+    // Keep the AWS service icons as separate files so the 128 SVGs are fetched
+    // on demand instead of being base64-inlined into the main bundle.
+    assetsInlineLimit: (filePath) => (/[\\/]aws-icons[\\/]/.test(filePath) ? false : undefined),
+  },
 })

@@ -2,12 +2,14 @@ import type { AWSService, Category, CategoryFilterValue } from '../types'
 import { CATEGORIES } from '../types'
 
 /**
- * Static AWS service dataset for the CLF-C02 exam (89 entries across 10 categories).
- * Counts per category: Compute 10, Storage 7, Database 8, Networking 12, Security 15,
- * Serverless 5, Management 8, AI/ML 11, Migration 3, Billing 10.
+ * Static AWS service dataset for the CLF-C02 exam (128 entries across 15 categories).
+ * Counts per category: Compute 11, Storage 9, Database 8, Analytics 5, Networking 14,
+ * Security 20, Serverless 5, Management 15, Developer Tools 6, Business Apps 2,
+ * End-User Computing 3, IoT 1, AI/ML 12, Migration 6, Billing 11.
+ * Every id has a matching icon in src/assets/aws-icons (see serviceIcons.ts).
  */
 export const awsServices: AWSService[] = [
-  // ---------------------------------------------------------------- Compute (10)
+  // ---------------------------------------------------------------- Compute (11)
   {
     id: 'ec2',
     name: 'EC2',
@@ -122,8 +124,19 @@ export const awsServices: AWSService[] = [
     hint: 'เกม AR/VR บนมือถือ หรือรถยนต์เชื่อมต่อที่ต้องตอบสนองเร็วมาก',
     examTips: 'จำคู่กัน: Outposts = ใน data center ลูกค้า, Wavelength = ในเครือข่าย 5G, Local Zones = ใกล้เมืองใหญ่',
   },
+  {
+    id: 'ecr',
+    name: 'ECR',
+    fullName: 'Amazon Elastic Container Registry',
+    category: 'Compute',
+    description: 'ที่เก็บ Docker/container image แบบ private ที่ AWS ดูแลให้',
+    answer:
+      'managed container registry สำหรับเก็บ จัดการ และแชร์ container image เข้ารหัสอัตโนมัติ สแกนช่องโหว่ได้ (ร่วมกับ Inspector) และดึง image ไปรันบน ECS, EKS หรือ Fargate ได้ทันที',
+    hint: 'ECR คือ "โกดังเก็บ image" ส่วน ECS/EKS คือ "คนเอา image ไปรัน"',
+    examTips: 'โจทย์ที่ถามว่า "เก็บ container image ไว้ที่ไหน" ให้ตอบ ECR ไม่ใช่ S3 หรือ ECS',
+  },
 
-  // ---------------------------------------------------------------- Storage (7)
+  // ---------------------------------------------------------------- Storage (9)
   {
     id: 's3',
     name: 'S3',
@@ -202,6 +215,28 @@ export const awsServices: AWSService[] = [
       'บริการ file system ที่รองรับหลายชนิด: FSx for Windows File Server (SMB, Active Directory), FSx for Lustre (HPC ประสิทธิภาพสูง), FSx for NetApp ONTAP และ FSx for OpenZFS',
     hint: 'ต้องการ SMB share สำหรับแอป Windows หรือ file system ความเร็วสูงสำหรับงาน HPC',
     examTips: 'FSx for Lustre = machine learning / HPC, FSx for Windows = SMB + AD integration',
+  },
+  {
+    id: 'aws-backup',
+    name: 'AWS Backup',
+    fullName: 'AWS Backup',
+    category: 'Storage',
+    description: 'ตั้งนโยบายสำรองข้อมูลจากจุดเดียว ครอบคลุมหลายบริการ AWS',
+    answer:
+      'บริการ backup แบบรวมศูนย์ที่สร้าง backup plan (ตารางเวลา + ระยะเก็บรักษา) ใช้กับ EBS, EC2, RDS, DynamoDB, EFS, FSx, S3 และ Storage Gateway ได้ในที่เดียว รองรับการสำรองข้ามบัญชีและข้าม region',
+    hint: 'แทนที่จะไปตั้ง snapshot ทีละบริการ ให้ AWS Backup คุมทั้งหมดด้วย policy เดียว',
+    examTips: 'คำใบ้คือ "centralize and automate backups across AWS services" — คำตอบคือ AWS Backup',
+  },
+  {
+    id: 'elastic-disaster-recovery',
+    name: 'Elastic Disaster Recovery',
+    fullName: 'AWS Elastic Disaster Recovery (DRS)',
+    category: 'Storage',
+    description: 'สำเนาเซิร์ฟเวอร์ต่อเนื่องไว้บน AWS เพื่อกู้ระบบได้ในไม่กี่นาที',
+    answer:
+      'บริการ disaster recovery ที่ทำ block-level replication ของเซิร์ฟเวอร์ (on-premises หรือคลาวด์อื่น) มาเก็บใน staging area ราคาถูกบน AWS แล้ว launch เป็น EC2 ได้ทันทีเมื่อเกิดเหตุ ให้ RPO เป็นวินาทีและ RTO เป็นนาที',
+    hint: 'ชื่อเดิมคือ CloudEndure Disaster Recovery — ใช้เทคโนโลยีเดียวกับ Application Migration Service',
+    examTips: 'โจทย์ที่ต้องการ "RPO/RTO ต่ำ" และ "กู้เซิร์ฟเวอร์ on-premises ไปที่ AWS" ให้ตอบ Elastic Disaster Recovery',
   },
 
   // --------------------------------------------------------------- Database (8)
@@ -295,7 +330,64 @@ export const awsServices: AWSService[] = [
     examTips: 'QLDB มี central authority รายเดียว ต่างจาก Managed Blockchain ที่มีหลายฝ่ายร่วมกัน',
   },
 
-  // ------------------------------------------------------------- Networking (12)
+  // -------------------------------------------------------------- Analytics (5)
+  {
+    id: 'athena',
+    name: 'Athena',
+    fullName: 'Amazon Athena',
+    category: 'Analytics',
+    description: 'คิวรีไฟล์ใน S3 ด้วย SQL ได้ทันทีโดยไม่ต้องตั้งเซิร์ฟเวอร์',
+    answer:
+      'serverless interactive query service ที่รัน SQL ตรงบนข้อมูลใน S3 (CSV, JSON, Parquet) ไม่ต้องโหลดข้อมูลเข้าฐานข้อมูลก่อน จ่ายตามปริมาณข้อมูลที่สแกน',
+    hint: 'มี log หรือไฟล์กองอยู่ใน S3 แล้วอยากถาม SQL เดี๋ยวนี้เลย ให้ใช้ Athena',
+    examTips: 'คำใบ้คือ "serverless" + "SQL" + "S3" — Athena ไม่ใช่ data warehouse แบบ Redshift',
+  },
+  {
+    id: 'emr',
+    name: 'EMR',
+    fullName: 'Amazon EMR',
+    category: 'Analytics',
+    description: 'คลัสเตอร์ big data สำเร็จรูปสำหรับ Hadoop และ Spark',
+    answer:
+      'managed big data platform ที่รัน framework open-source อย่าง Apache Spark, Hadoop, Hive และ Presto บนคลัสเตอร์ EC2 (หรือ EMR Serverless) เพื่อประมวลผลข้อมูลขนาดใหญ่',
+    hint: 'ชื่อเดิมคือ Elastic MapReduce — ถ้าโจทย์พูดถึง Hadoop หรือ Spark ให้นึกถึง EMR',
+    examTips: 'จำคู่คำ: Hadoop/Spark = EMR, SQL บน S3 = Athena, ETL แบบ serverless = Glue',
+  },
+  {
+    id: 'glue',
+    name: 'Glue',
+    fullName: 'AWS Glue',
+    category: 'Analytics',
+    description: 'บริการ ETL แบบ serverless พร้อม Data Catalog กลาง',
+    answer:
+      'serverless data integration service ที่ค้นหาข้อมูล (crawler), เก็บ schema ไว้ใน Glue Data Catalog และรัน ETL job เพื่อแปลงและย้ายข้อมูลไปยัง data lake หรือ data warehouse',
+    hint: 'Glue = "กาว" ที่ดึงข้อมูลจากหลายแหล่งมาแปลงแล้วต่อเข้าด้วยกัน',
+    examTips: 'คำใบ้คือ "ETL (extract, transform, load)" หรือ "data catalog" — คำตอบคือ Glue',
+  },
+  {
+    id: 'opensearch',
+    name: 'OpenSearch Service',
+    fullName: 'Amazon OpenSearch Service',
+    category: 'Analytics',
+    description: 'ค้นหาข้อความและวิเคราะห์ log แบบเรียลไทม์ (สืบทอดจาก Elasticsearch)',
+    answer:
+      'managed service สำหรับ OpenSearch (และ Elasticsearch รุ่นเดิม) ใช้ทำ full-text search, log analytics และ observability พร้อมแดชบอร์ด OpenSearch Dashboards',
+    hint: 'ชื่อเดิมคือ Amazon Elasticsearch Service — ช่องค้นหาสินค้าในเว็บหรือวิเคราะห์ log แบบ real-time',
+    examTips: 'คำใบ้คือ "search", "log analytics" หรือ "Elasticsearch" — คำตอบคือ OpenSearch Service',
+  },
+  {
+    id: 'quicksight',
+    name: 'QuickSight',
+    fullName: 'Amazon QuickSight (ส่วนหนึ่งของ Amazon Quick Suite)',
+    category: 'Analytics',
+    description: 'เครื่องมือ BI สร้างแดชบอร์ดและกราฟจากข้อมูล',
+    answer:
+      'บริการ business intelligence แบบ serverless ที่สร้างแดชบอร์ดและรายงานแบบโต้ตอบได้ ดึงข้อมูลจาก S3, Athena, Redshift, RDS และแหล่งอื่น ถามคำถามเป็นภาษาธรรมชาติได้ จ่ายตามผู้ใช้',
+    hint: 'ผู้บริหารอยากดูกราฟยอดขาย — ข้อมูลอยู่ใน Redshift ส่วนภาพที่โชว์มาจาก QuickSight',
+    examTips: 'คำใบ้คือ "visualization", "dashboard" หรือ "BI" — คำตอบคือ QuickSight (exam guide ล่าสุดเรียกว่า Amazon Quick)',
+  },
+
+  // ------------------------------------------------------------- Networking (14)
   {
     id: 'vpc',
     name: 'VPC',
@@ -429,8 +521,30 @@ export const awsServices: AWSService[] = [
     hint: 'ต่างจาก CloudFront ที่แคชเนื้อหา — Global Accelerator ไม่แคช แต่เร่งเส้นทางเครือข่าย',
     examTips: 'โจทย์ non-HTTP (เช่น เกม, VoIP, TCP/UDP) ที่ต้องการ static IP และ latency ต่ำ ให้ตอบ Global Accelerator',
   },
+  {
+    id: 'privatelink',
+    name: 'PrivateLink',
+    fullName: 'AWS PrivateLink',
+    category: 'Networking',
+    description: 'เข้าถึงบริการ AWS หรือบริการของบัญชีอื่นแบบส่วนตัว ไม่ผ่านอินเทอร์เน็ต',
+    answer:
+      'เทคโนโลยีที่สร้าง interface VPC endpoint ใน subnet ของเรา เพื่อเชื่อมไปยังบริการ AWS, บริการของพาร์ตเนอร์ หรือบริการในบัญชีอื่น ผ่านเครือข่ายภายในของ AWS โดยไม่ต้องใช้ Internet Gateway, NAT หรือ VPC peering',
+    hint: 'อยากให้ EC2 ใน private subnet คุยกับบริการอื่นโดยทราฟฟิกไม่เคยออกอินเทอร์เน็ต',
+    examTips: 'คำใบ้คือ "private connectivity" + "ไม่ expose ทราฟฟิกสู่ public internet" — คำตอบคือ PrivateLink',
+  },
+  {
+    id: 'client-vpn',
+    name: 'Client VPN',
+    fullName: 'AWS Client VPN',
+    category: 'Networking',
+    description: 'VPN ให้พนักงานแต่ละคนต่อเข้า AWS หรือเครือข่ายองค์กรจากที่ไหนก็ได้',
+    answer:
+      'managed client-based VPN (OpenVPN) ที่ให้ผู้ใช้แต่ละคนเชื่อมจากโน้ตบุ๊กหรืออุปกรณ์ของตัวเองเข้าสู่ VPC และเครือข่าย on-premises อย่างปลอดภัย สเกลตามจำนวนผู้ใช้อัตโนมัติ',
+    hint: 'Client VPN = คนต่อเข้าเครือข่าย, Site-to-Site VPN = ออฟฟิศทั้งออฟฟิศต่อเข้า VPC',
+    examTips: 'โจทย์ "พนักงานทำงานจากบ้านต้องเข้าทรัพยากรใน VPC" ให้ตอบ Client VPN ไม่ใช่ Site-to-Site VPN',
+  },
 
-  // --------------------------------------------------------------- Security (15)
+  // --------------------------------------------------------------- Security (20)
   {
     id: 'iam',
     name: 'IAM',
@@ -597,6 +711,61 @@ export const awsServices: AWSService[] = [
     hint: 'ต่างจาก Systems Manager Parameter Store ที่ฟรีแต่ไม่มี rotation อัตโนมัติ',
     examTips: 'คำใบ้ที่ชี้ชัดคือ "automatic credential rotation" — คำตอบคือ Secrets Manager',
   },
+  {
+    id: 'cognito',
+    name: 'Cognito',
+    fullName: 'Amazon Cognito',
+    category: 'Security',
+    description: 'ระบบสมัครสมาชิกและล็อกอินสำหรับผู้ใช้ของเว็บและแอปมือถือ',
+    answer:
+      'บริการ identity สำหรับลูกค้าของแอป (customer identity) มี User Pool สำหรับ sign-up/sign-in, MFA และล็อกอินผ่าน Google, Facebook หรือ SAML และ Identity Pool สำหรับแลก token เป็นสิทธิ์ AWS ชั่วคราว',
+    hint: 'IAM = พนักงานที่ดูแลบัญชี AWS, Cognito = ผู้ใช้ปลายทางหลายล้านคนของแอปเรา',
+    examTips: 'คำใบ้คือ "add sign-up and sign-in to web/mobile app" หรือ "social login" — คำตอบคือ Cognito',
+  },
+  {
+    id: 'detective',
+    name: 'Detective',
+    fullName: 'Amazon Detective',
+    category: 'Security',
+    description: 'สืบสวนหาต้นตอของเหตุด้านความปลอดภัยด้วยกราฟความสัมพันธ์',
+    answer:
+      'บริการที่รวบรวม log จาก CloudTrail, VPC Flow Logs และ finding จาก GuardDuty มาสร้างเป็นกราฟพฤติกรรม เพื่อช่วยวิเคราะห์ root cause และขอบเขตของเหตุการณ์ด้านความปลอดภัย',
+    hint: 'GuardDuty "เป่านกหวีด" ว่ามีอะไรผิดปกติ แล้ว Detective "สืบต่อ" ว่าเกิดจากอะไร',
+    examTips: 'คำใบ้คือ "investigate", "root cause" ของ security finding — คำตอบคือ Detective ไม่ใช่ GuardDuty',
+  },
+  {
+    id: 'directory-service',
+    name: 'Directory Service',
+    fullName: 'AWS Directory Service (Managed Microsoft AD)',
+    category: 'Security',
+    description: 'Microsoft Active Directory แบบ managed บน AWS',
+    answer:
+      'บริการ directory ที่ให้ใช้ Microsoft Active Directory บน AWS ได้ทั้งแบบ AWS Managed Microsoft AD, AD Connector (ส่งต่อไป AD เดิมใน on-premises) และ Simple AD ใช้ join EC2 Windows, WorkSpaces และ RDS for SQL Server เข้าโดเมน',
+    hint: 'องค์กรใช้ Active Directory อยู่แล้วและอยากให้ทรัพยากรบน AWS ใช้ user ชุดเดิม',
+    examTips: 'คำใบ้คือ "Active Directory" หรือ "Microsoft AD" — คำตอบคือ Directory Service',
+  },
+  {
+    id: 'firewall-manager',
+    name: 'Firewall Manager',
+    fullName: 'AWS Firewall Manager',
+    category: 'Security',
+    description: 'ตั้งกฎไฟร์วอลล์จากจุดเดียวให้ทุกบัญชีใน Organizations',
+    answer:
+      'บริการบริหารกฎความปลอดภัยแบบรวมศูนย์ ใช้กำหนด WAF rule, Shield Advanced, Security Group, Network Firewall และ Route 53 Resolver DNS Firewall ให้ทุกบัญชีและทรัพยากรใหม่ใน AWS Organizations โดยอัตโนมัติ',
+    hint: 'มี 50 บัญชี ไม่อยากเข้าไปตั้ง WAF ทีละบัญชี ให้ใช้ Firewall Manager',
+    examTips: 'คำใบ้คือ "centrally configure firewall rules across accounts" — ต้องเปิด AWS Organizations ก่อน',
+  },
+  {
+    id: 'ram',
+    name: 'RAM',
+    fullName: 'AWS Resource Access Manager',
+    category: 'Security',
+    description: 'แชร์ทรัพยากร AWS ให้บัญชีอื่นใช้ร่วมกันได้อย่างปลอดภัย',
+    answer:
+      'บริการแชร์ทรัพยากร เช่น subnet, Transit Gateway, License Manager configuration และ Route 53 Resolver rule ให้บัญชีอื่นหรือทั้ง OU ใน Organizations ใช้ได้ โดยไม่ต้องสร้างทรัพยากรซ้ำ',
+    hint: 'สร้าง Transit Gateway ไว้บัญชีเดียว แล้วแชร์ให้ทุกบัญชีใช้ร่วมกันด้วย RAM',
+    examTips: 'คำใบ้คือ "share resources across AWS accounts" — คำตอบคือ RAM ไม่ใช่ IAM',
+  },
 
   // ------------------------------------------------- Serverless & Integration (5)
   {
@@ -655,7 +824,7 @@ export const awsServices: AWSService[] = [
     examTips: 'Kinesis = ข้อมูลไหลต่อเนื่องแบบเรียลไทม์, SQS = คิวงานที่ต้องประมวลผลทีละชิ้น',
   },
 
-  // ------------------------------------------------------------- Management (8)
+  // ------------------------------------------------------------- Management (15)
   {
     id: 'cloudwatch',
     name: 'CloudWatch',
@@ -744,8 +913,225 @@ export const awsServices: AWSService[] = [
     hint: 'ต่างจากหน้า status ทั่วไป เพราะบอกได้ว่าเหตุการณ์นั้นกระทบทรัพยากรชิ้นไหนของเรา',
     examTips: 'โจทย์ที่ถามว่า "จะรู้ล่วงหน้าได้อย่างไรว่า AWS จะ maintenance เครื่องของเรา" ให้ตอบ Health Dashboard',
   },
+  {
+    id: 'auto-scaling',
+    name: 'Auto Scaling',
+    fullName: 'AWS Auto Scaling',
+    category: 'Management',
+    description: 'เพิ่มหรือลดจำนวนทรัพยากรอัตโนมัติตามโหลดจริง',
+    answer:
+      'บริการปรับขนาดทรัพยากรอัตโนมัติ เช่น EC2 Auto Scaling group, ECS task, DynamoDB capacity และ Aurora replica ตาม scaling policy (target tracking, step, scheduled) เพื่อรักษาประสิทธิภาพด้วยต้นทุนต่ำสุด',
+    hint: 'ช่วงลดราคามีคนเข้าเว็บพุ่ง ระบบเพิ่มเครื่องเอง พอคนน้อยก็ลดเครื่องลงเอง',
+    examTips: 'Auto Scaling ตอบทั้ง elasticity และ high availability (แทนเครื่องที่ health check ไม่ผ่าน) — มักคู่กับ ELB',
+  },
+  {
+    id: 'compute-optimizer',
+    name: 'Compute Optimizer',
+    fullName: 'AWS Compute Optimizer',
+    category: 'Management',
+    description: 'ใช้ ML วิเคราะห์การใช้งานแล้วแนะนำขนาดทรัพยากรที่เหมาะสม (right-sizing)',
+    answer:
+      'บริการที่วิเคราะห์ metric การใช้งานย้อนหลังของ EC2, Auto Scaling group, EBS, Lambda และ ECS on Fargate แล้วแนะนำ instance type หรือขนาดที่เหมาะสม เพื่อลดต้นทุนหรือเพิ่มประสิทธิภาพ',
+    hint: 'เครื่องใหญ่เกินไปเสียเงิน เล็กเกินไปช้า — Compute Optimizer บอกว่าขนาดไหนพอดี',
+    examTips: 'คำใบ้คือ "right-size" หรือ "over-provisioned / under-provisioned" — คำตอบคือ Compute Optimizer',
+  },
+  {
+    id: 'license-manager',
+    name: 'License Manager',
+    fullName: 'AWS License Manager',
+    category: 'Management',
+    description: 'ติดตามและคุมจำนวน license ซอฟต์แวร์ เช่น Microsoft และ Oracle',
+    answer:
+      'บริการจัดการ software license จากผู้ขายอย่าง Microsoft, Oracle, SAP และ IBM ทั้งบน AWS และ on-premises ตั้งกฎจำกัดการใช้งานเพื่อไม่ให้เกินสิทธิ์และลดความเสี่ยงตอนถูก audit',
+    hint: 'นำ license เดิมมาใช้บนคลาวด์ (BYOL) แล้วต้องคุมไม่ให้ใช้เกินจำนวนที่ซื้อไว้',
+    examTips: 'คำใบ้คือ "track license usage" หรือ "BYOL compliance" — คำตอบคือ License Manager',
+  },
+  {
+    id: 'management-console',
+    name: 'Management Console',
+    fullName: 'AWS Management Console',
+    category: 'Management',
+    description: 'หน้าเว็บสำหรับเข้าใช้และจัดการบริการ AWS ผ่านเบราว์เซอร์',
+    answer:
+      'web-based user interface สำหรับสร้างและจัดการทรัพยากร AWS แบบคลิก ดูบิล เปิดเคส support และมีแอปมือถือ AWS Console Mobile Application สำหรับดูสถานะทรัพยากร',
+    hint: 'สามทางเข้าถึง AWS: Console (คลิก), CLI (พิมพ์คำสั่ง), SDK (เขียนโค้ด)',
+    examTips: 'ข้อสอบมักถามว่าวิธีเข้าถึง AWS มีอะไรบ้าง — Console, CLI, SDK และ Infrastructure as Code',
+  },
+  {
+    id: 'service-catalog',
+    name: 'Service Catalog',
+    fullName: 'AWS Service Catalog',
+    category: 'Management',
+    description: 'แคตตาล็อกทรัพยากรที่องค์กรอนุมัติแล้วให้พนักงานกดสร้างเองได้',
+    answer:
+      'บริการที่ให้ทีม IT สร้างและจัดการแคตตาล็อกของ product (CloudFormation template) ที่ผ่านการอนุมัติ ผู้ใช้ปลายทาง launch เองได้ภายใต้ข้อกำหนดด้าน governance และ compliance ขององค์กร',
+    hint: 'เหมือนเมนูร้านอาหาร: พนักงานสั่งได้เฉพาะของที่อยู่ในเมนูที่ IT อนุมัติไว้',
+    examTips: 'คำใบ้คือ "approved IT services" หรือ "self-service provisioning ที่คุม standard" — คำตอบคือ Service Catalog',
+  },
+  {
+    id: 'service-quotas',
+    name: 'Service Quotas',
+    fullName: 'Service Quotas',
+    category: 'Management',
+    description: 'ดูและขอเพิ่มเพดานการใช้งาน (limit) ของแต่ละบริการ',
+    answer:
+      'บริการแสดงค่า quota (เดิมเรียก service limits) ของบริการ AWS ในแต่ละ region เช่น จำนวน EC2 vCPU หรือ VPC ต่อ region ขอเพิ่ม quota ได้จากหน้าเดียว และตั้ง CloudWatch alarm เมื่อใกล้ถึงเพดาน',
+    hint: 'สร้าง EC2 เพิ่มไม่ได้เพราะชนเพดาน ให้ไปขอเพิ่มที่ Service Quotas',
+    examTips: 'คำใบ้คือ "service limits" หรือ "request a quota increase" — Trusted Advisor ก็ช่วยเตือนเรื่อง service limits ได้',
+  },
+  {
+    id: 'well-architected-tool',
+    name: 'Well-Architected Tool',
+    fullName: 'AWS Well-Architected Tool',
+    category: 'Management',
+    description: 'ตอบชุดคำถามเพื่อรีวิว workload เทียบกับ Well-Architected Framework',
+    answer:
+      'เครื่องมือฟรีใน Console ที่ให้ตอบคำถามตาม 6 pillar ของ Well-Architected Framework แล้วสรุปความเสี่ยง (high/medium risk) พร้อมแผนปรับปรุงและติดตามผลเป็น milestone',
+    hint: 'Framework คือหลักการ ส่วน Tool คือแบบฟอร์มที่ใช้ตรวจ workload จริงตามหลักการนั้น',
+    examTips: 'คำใบ้คือ "review workloads against best practices" — คำตอบคือ Well-Architected Tool ไม่ใช่ Trusted Advisor',
+  },
 
-  // ------------------------------------------------------------------ AI/ML (11)
+  // -------------------------------------------------------- Developer Tools (6)
+  {
+    id: 'aws-cli',
+    name: 'AWS CLI',
+    fullName: 'AWS Command Line Interface',
+    category: 'Developer Tools',
+    description: 'สั่งงานบริการ AWS ด้วยคำสั่งใน terminal และเขียนเป็น script ได้',
+    answer:
+      'เครื่องมือ command line ที่ควบคุมบริการ AWS ได้เกือบทั้งหมดผ่านคำสั่ง เช่น aws s3 cp ใช้ access key หรือ IAM Identity Center ในการยืนยันตัวตน และนำไปเขียน script เพื่อทำงานอัตโนมัติได้',
+    hint: 'งานที่ต้องทำซ้ำทุกวันผ่านการคลิก Console ให้เปลี่ยนมาเขียน script ด้วย CLI',
+    examTips: 'CLI และ SDK เรียก API ตัวเดียวกับ Console — โจทย์ "automate ด้วย script" ให้ตอบ CLI',
+  },
+  {
+    id: 'codebuild',
+    name: 'CodeBuild',
+    fullName: 'AWS CodeBuild',
+    category: 'Developer Tools',
+    description: 'คอมไพล์โค้ด รันเทสต์ และสร้าง package โดยไม่ต้องมี build server',
+    answer:
+      'fully managed continuous integration (CI) service ที่ compile source code, รัน test และสร้าง artifact พร้อม deploy สเกลอัตโนมัติและจ่ายเฉพาะนาทีที่ build',
+    hint: 'CodeBuild = ขั้น "build + test" ภายใน pipeline ที่ CodePipeline เป็นคนคุม',
+    examTips: 'คำใบ้คือ "compile", "run tests", "no build servers to manage" — คำตอบคือ CodeBuild',
+  },
+  {
+    id: 'codepipeline',
+    name: 'CodePipeline',
+    fullName: 'AWS CodePipeline',
+    category: 'Developer Tools',
+    description: 'สายพาน CI/CD อัตโนมัติจาก commit จนถึง production',
+    answer:
+      'fully managed continuous delivery service ที่ตรวจจับการเปลี่ยนแปลงใน repository แล้วรันขั้น source, build, test และ deploy ต่อกันอัตโนมัติทุกครั้งที่มี commit',
+    hint: 'CodePipeline คือ "ผู้ควบคุมวง" ที่เรียก CodeBuild และเครื่องมือ deploy ตามลำดับ',
+    examTips: 'คำใบ้คือ "CI/CD", "automate release pipeline" — คำตอบคือ CodePipeline',
+  },
+  {
+    id: 'x-ray',
+    name: 'X-Ray',
+    fullName: 'AWS X-Ray',
+    category: 'Developer Tools',
+    description: 'ติดตาม request ข้ามหลายบริการเพื่อหาจุดที่ช้าหรือพัง',
+    answer:
+      'บริการ distributed tracing ที่ติดตาม request ขณะวิ่งผ่าน microservice, Lambda และฐานข้อมูล แสดงเป็น service map ให้เห็นคอขวดด้าน performance และจุดที่เกิด error',
+    hint: 'X-Ray เหมือนเอ็กซเรย์แอป มองทะลุเข้าไปเห็นว่า request ติดอยู่ตรงไหน',
+    examTips: 'คำใบ้คือ "trace", "debug", "performance bottleneck" ของแอป — X-Ray ไม่ใช่ CloudWatch (metric/log) และไม่ใช่ CloudTrail (API audit)',
+  },
+  {
+    id: 'appsync',
+    name: 'AppSync',
+    fullName: 'AWS AppSync',
+    category: 'Developer Tools',
+    description: 'สร้าง GraphQL API ที่รวมข้อมูลจากหลายแหล่งไว้ใน API เดียว',
+    answer:
+      'fully managed GraphQL (และ Pub/Sub) API service ที่เชื่อม frontend กับ backend data หลายแหล่ง เช่น DynamoDB, Lambda และ HTTP API ให้ client ขอเฉพาะข้อมูลที่ต้องการ และรองรับ real-time subscription',
+    hint: 'จำคู่คำ: GraphQL = AppSync, REST/HTTP/WebSocket API = API Gateway',
+    examTips: 'คำใบ้คือ "GraphQL" — คำตอบคือ AppSync',
+  },
+  {
+    id: 'amplify',
+    name: 'Amplify',
+    fullName: 'AWS Amplify',
+    category: 'Developer Tools',
+    description: 'ชุดเครื่องมือสร้างและโฮสต์เว็บ/แอปมือถือแบบ full-stack ได้เร็ว',
+    answer:
+      'บริการสำหรับนักพัฒนา frontend ที่เพิ่ม authentication, API, storage และ hosting ให้แอปเว็บและมือถือได้ในไม่กี่คำสั่ง พร้อม CI/CD ที่ deploy อัตโนมัติจาก Git และไม่ต้องดูแล infrastructure เอง',
+    hint: 'นักพัฒนา React/Next.js อยากได้ backend + hosting ครบชุดโดยไม่ต้องรู้ AWS ลึก ให้ใช้ Amplify',
+    examTips: 'คำใบ้คือ "full-stack web and mobile app", "frontend developers" — คำตอบคือ Amplify',
+  },
+
+  // ---------------------------------------------------------- Business Apps (2)
+  {
+    id: 'connect',
+    name: 'Connect',
+    fullName: 'Amazon Connect',
+    category: 'Business Apps',
+    description: 'contact center บนคลาวด์ที่มี AI รับสาย แชต และวิเคราะห์บทสนทนา',
+    answer:
+      'AI-powered cloud contact center ที่ตั้ง call center ได้ในไม่กี่นาที มี call routing, call recording, real-time analytics และผสานกับ Lex (แชตบอต), Transcribe และ Contact Lens จ่ายตามการใช้งาน ไม่มีค่าใช้จ่ายขั้นต่ำ',
+    hint: 'คำใบ้คือ "call center", "customer service", "call routing / recording"',
+    examTips: 'โจทย์ที่ต้องการ contact center พร้อม routing, recording และ analytics ให้ตอบ Connect',
+  },
+  {
+    id: 'ses',
+    name: 'SES',
+    fullName: 'Amazon Simple Email Service',
+    category: 'Business Apps',
+    description: 'ส่งอีเมลปริมาณมาก ทั้ง transactional และ marketing ด้วยต้นทุนต่ำ',
+    answer:
+      'บริการส่งอีเมลแบบสเกลได้ผ่าน API หรือ SMTP ใช้ส่งอีเมลยืนยันคำสั่งซื้อ รีเซ็ตรหัสผ่าน จดหมายข่าว และโปรโมชัน พร้อมติดตาม deliverability, bounce และ complaint',
+    hint: 'SNS ส่งการแจ้งเตือนสั้น ๆ ได้หลายช่องทาง แต่ถ้าเป็นอีเมลจำนวนมากที่ออกแบบเนื้อหาเอง ให้ใช้ SES',
+    examTips: 'คำใบ้คือ "high-volume email", "marketing / transactional email" — คำตอบคือ SES',
+  },
+
+  // ----------------------------------------------------- End-User Computing (3)
+  {
+    id: 'appstream',
+    name: 'AppStream 2.0',
+    fullName: 'Amazon AppStream 2.0 (ปัจจุบันชื่อ Amazon WorkSpaces Applications)',
+    category: 'End-User Computing',
+    description: 'สตรีมแอปพลิเคชันจากคลาวด์ไปยังเบราว์เซอร์บนอุปกรณ์ใดก็ได้',
+    answer:
+      'fully managed application streaming ที่รันแอป desktop บนคลาวด์แล้วสตรีมภาพไปให้ผู้ใช้ผ่านเบราว์เซอร์ ส่งมอบแอปเป็นแบบ SaaS ได้โดยไม่ต้องแก้โค้ด และไม่ต้องใช้เครื่องสเปกสูงฝั่งผู้ใช้',
+    hint: 'สตรีม "แอป" รายตัว (เช่น โปรแกรม CAD) ไม่ใช่ทั้ง desktop แบบ WorkSpaces',
+    examTips: 'AWS เปลี่ยนชื่อเป็น WorkSpaces Applications เมื่อ พ.ย. 2025 แต่ exam guide ยังใช้ชื่อ AppStream 2.0 — โจทย์ "ให้พนักงานเข้าแอป SaaS / desktop app ผ่านเบราว์เซอร์" ให้ตอบตัวนี้',
+  },
+  {
+    id: 'workspaces',
+    name: 'WorkSpaces',
+    fullName: 'Amazon WorkSpaces',
+    category: 'End-User Computing',
+    description: 'เครื่อง desktop เสมือน (VDI) บนคลาวด์ ใช้ได้จากทุกที่',
+    answer:
+      'fully managed virtual desktop infrastructure (DaaS) ที่ให้พนักงานแต่ละคนมี Windows หรือ Linux desktop บนคลาวด์ เข้าใช้ได้จากอุปกรณ์ใดก็ได้ที่ต่ออินเทอร์เน็ต จ่ายรายเดือนหรือรายชั่วโมง',
+    hint: 'พนักงาน work from home ได้ "คอมพิวเตอร์ที่ทำงาน" ทั้งเครื่อง โดยข้อมูลไม่ลงเครื่องส่วนตัว',
+    examTips: 'คำใบ้คือ "virtual desktop", "VDI", "desktop as a service" — คำตอบคือ WorkSpaces',
+  },
+  {
+    id: 'workspaces-secure-browser',
+    name: 'WorkSpaces Secure Browser',
+    fullName: 'Amazon WorkSpaces Secure Browser (เดิม WorkSpaces Web)',
+    category: 'End-User Computing',
+    description: 'เบราว์เซอร์องค์กรบนคลาวด์สำหรับเข้าเว็บภายในและแอป SaaS อย่างปลอดภัย',
+    answer:
+      'fully managed remote enterprise browser ที่ให้พนักงานเข้าเว็บไซต์ภายใน แอป SaaS และอินเทอร์เน็ตผ่านสภาพแวดล้อมที่ปลอดภัย ไม่ต้องติดตั้ง client พิเศษ ไม่ต้องดูแล infrastructure หรือ VPN',
+    hint: 'พนักงานต้องการแค่ "เว็บ" ไม่ต้องการทั้ง desktop — ตัวเลือกที่เบากว่า WorkSpaces',
+    examTips: 'เรียงจากหนักไปเบา: WorkSpaces (ทั้ง desktop) → AppStream 2.0 (แอปรายตัว) → Secure Browser (เว็บอย่างเดียว)',
+  },
+
+  // -------------------------------------------------------------------- IoT (1)
+  {
+    id: 'iot-core',
+    name: 'IoT Core',
+    fullName: 'AWS IoT Core',
+    category: 'IoT',
+    description: 'เชื่อมอุปกรณ์ IoT นับพันล้านเครื่องเข้าคลาวด์อย่างปลอดภัย',
+    answer:
+      'managed cloud service ที่ให้อุปกรณ์ IoT ส่งและรับข้อความกับแอปบนคลาวด์ผ่าน MQTT, HTTPS หรือ WebSocket ยืนยันตัวตนแบบ mutual authentication เข้ารหัส end-to-end และใช้ rules engine ส่งข้อมูลต่อไปยัง Lambda, S3 หรือ DynamoDB',
+    hint: 'กล้องวงจรปิดอัจฉริยะ ที่ให้อาหารสัตว์ควบคุมผ่านมือถือ หรือปลั๊ก Wi-Fi สั่งปิดไฟจากระยะไกล',
+    examTips: 'คำใบ้คือ "connected devices", "sensors", "IoT" — คำตอบคือ IoT Core',
+  },
+
+  // ------------------------------------------------------------------ AI/ML (12)
   {
     id: 'sagemaker',
     name: 'SageMaker',
@@ -867,8 +1253,19 @@ export const awsServices: AWSService[] = [
     hint: 'คำใบ้คือ "personalized recommendation" หรือ "สินค้าที่คุณอาจสนใจ"',
     examTips: 'จำคู่คำ: ระบบแนะนำ = Personalize (ไม่ต้องไปสร้างโมเดลเองบน SageMaker)',
   },
+  {
+    id: 'amazon-q',
+    name: 'Amazon Q',
+    fullName: 'Amazon Q',
+    category: 'AI/ML',
+    description: 'ผู้ช่วย generative AI สำหรับงานพัฒนาซอฟต์แวร์และงานในองค์กร',
+    answer:
+      'generative AI assistant มีสองกลุ่มหลัก: Amazon Q Developer (ช่วยเขียนโค้ด อธิบายโค้ด แก้ปัญหาบน AWS ใน IDE และ Console) และ Amazon Q Business (ตอบคำถามจากข้อมูลและเอกสารภายในองค์กร โดยเคารพสิทธิ์การเข้าถึงเดิม)',
+    hint: 'Bedrock = แพลตฟอร์มให้นักพัฒนาสร้างแอป gen AI เอง, Q = ผู้ช่วยสำเร็จรูปพร้อมใช้',
+    examTips: 'คำใบ้คือ "AI-powered assistant", "code suggestions" หรือ "ถามตอบจากข้อมูลบริษัท" — คำตอบคือ Amazon Q',
+  },
 
-  // -------------------------------------------------------------- Migration (3)
+  // -------------------------------------------------------------- Migration (6)
   {
     id: 'dms',
     name: 'DMS',
@@ -902,8 +1299,41 @@ export const awsServices: AWSService[] = [
     hint: 'เป็นบริการที่ AWS แนะนำแทน Server Migration Service (SMS) ที่เลิกใช้แล้ว',
     examTips: 'โจทย์ "rehost แอปเดิมขึ้นคลาวด์โดยไม่แก้โค้ด" ให้ตอบ Application Migration Service',
   },
+  {
+    id: 'application-discovery',
+    name: 'Application Discovery Service',
+    fullName: 'AWS Application Discovery Service',
+    category: 'Migration',
+    description: 'สำรวจเซิร์ฟเวอร์ใน data center ก่อนย้าย ว่ามีอะไรและพึ่งพากันอย่างไร',
+    answer:
+      'บริการเก็บข้อมูลเซิร์ฟเวอร์ on-premises ทั้งสเปก การใช้งาน และการเชื่อมต่อระหว่างเครื่อง (dependency) ผ่าน agent หรือ agentless collector แล้วส่งผลเข้า Migration Hub เพื่อวางแผนการย้าย',
+    hint: 'ขั้นแรกของการย้ายคือ "รู้ก่อนว่าบ้านเรามีอะไร" — Discovery Service ทำหน้าที่นั้น',
+    examTips: 'คำใบ้คือ "discover on-premises servers" หรือ "map dependencies" ก่อน migrate',
+  },
+  {
+    id: 'migration-evaluator',
+    name: 'Migration Evaluator',
+    fullName: 'Migration Evaluator',
+    category: 'Migration',
+    description: 'ทำ business case ประเมินต้นทุนและความคุ้มค่าก่อนย้ายขึ้น AWS',
+    answer:
+      'บริการประเมินการย้ายระบบที่วิเคราะห์ข้อมูลการใช้งานจริงของ on-premises แล้วจำลองค่าใช้จ่ายบน AWS แบบ right-sized รวมถึงทางเลือกด้าน license เพื่อสร้าง business case ให้ผู้บริหารตัดสินใจ',
+    hint: 'ชื่อเดิมคือ TSO Logic — ใช้ตอบคำถาม "ย้ายแล้วประหยัดเท่าไร"',
+    examTips: 'คำใบ้คือ "build a business case" หรือ "TCO ก่อน migrate" — คำตอบคือ Migration Evaluator',
+  },
+  {
+    id: 'sct',
+    name: 'SCT',
+    fullName: 'AWS Schema Conversion Tool',
+    category: 'Migration',
+    description: 'แปลง schema และโค้ดฐานข้อมูลเมื่อย้ายข้ามชนิด database engine',
+    answer:
+      'เครื่องมือแปลง database schema, stored procedure และโค้ด SQL จาก engine หนึ่งไปอีก engine หนึ่ง เช่น Oracle ไป Aurora PostgreSQL หรือ SQL Server ไป MySQL แล้วใช้ DMS ย้ายข้อมูลจริง',
+    hint: 'SCT แปลง "โครงสร้าง", DMS ย้าย "ข้อมูล"',
+    examTips: 'การย้ายแบบ heterogeneous (ต่าง engine) ต้องใช้ SCT + DMS ส่วนแบบ homogeneous ใช้ DMS อย่างเดียวได้',
+  },
 
-  // ---------------------------------------------------------------- Billing (10)
+  // ---------------------------------------------------------------- Billing (11)
   {
     id: 'free-tier',
     name: 'Free Tier',
@@ -1015,6 +1445,17 @@ export const awsServices: AWSService[] = [
     hint: 'คำใบ้คือ "third-party software" หรือ "ซื้อ appliance จากผู้ขายรายอื่นแล้วจ่ายผ่าน AWS"',
     examTips: 'โจทย์ที่ต้องการซอฟต์แวร์เชิงพาณิชย์ที่พร้อมใช้และรวมบิล ให้ตอบ AWS Marketplace',
   },
+  {
+    id: 'cost-usage-report',
+    name: 'Cost and Usage Report',
+    fullName: 'AWS Cost and Usage Report (CUR)',
+    category: 'Billing',
+    description: 'รายงานค่าใช้จ่ายละเอียดที่สุดระดับรายชั่วโมงส่งเข้า S3',
+    answer:
+      'รายงานบิลที่ละเอียดที่สุดของ AWS แจกแจงค่าใช้จ่ายและการใช้งานรายบริการ รายทรัพยากร และราย tag ระดับรายชั่วโมงหรือรายวัน ส่งเป็นไฟล์เข้า S3 เพื่อวิเคราะห์ต่อด้วย Athena, Redshift หรือ QuickSight',
+    hint: 'Cost Explorer ดูกราฟสรุป แต่ถ้าต้องการข้อมูลดิบละเอียดทุกบรรทัดไปวิเคราะห์เอง ให้ใช้ CUR',
+    examTips: 'คำใบ้คือ "most comprehensive / detailed billing data" — คำตอบคือ Cost and Usage Report',
+  },
 ]
 
 /** Fast lookup of every valid service id; used to sanitise stored progress. */
@@ -1051,10 +1492,15 @@ export const CATEGORY_STYLES: Record<Category, { badge: string; dot: string; rin
   Compute: { badge: 'bg-blue-500 text-white', dot: 'bg-blue-500', ring: 'ring-blue-500' },
   Storage: { badge: 'bg-green-500 text-white', dot: 'bg-green-500', ring: 'ring-green-500' },
   Database: { badge: 'bg-purple-500 text-white', dot: 'bg-purple-500', ring: 'ring-purple-500' },
+  Analytics: { badge: 'bg-indigo-500 text-white', dot: 'bg-indigo-500', ring: 'ring-indigo-500' },
   Networking: { badge: 'bg-cyan-500 text-white', dot: 'bg-cyan-500', ring: 'ring-cyan-500' },
   Security: { badge: 'bg-red-500 text-white', dot: 'bg-red-500', ring: 'ring-red-500' },
   Serverless: { badge: 'bg-amber-500 text-white', dot: 'bg-amber-500', ring: 'ring-amber-500' },
   Management: { badge: 'bg-gray-600 text-white', dot: 'bg-gray-600', ring: 'ring-gray-600' },
+  'Developer Tools': { badge: 'bg-sky-600 text-white', dot: 'bg-sky-600', ring: 'ring-sky-600' },
+  'Business Apps': { badge: 'bg-rose-500 text-white', dot: 'bg-rose-500', ring: 'ring-rose-500' },
+  'End-User Computing': { badge: 'bg-violet-500 text-white', dot: 'bg-violet-500', ring: 'ring-violet-500' },
+  IoT: { badge: 'bg-lime-600 text-white', dot: 'bg-lime-600', ring: 'ring-lime-600' },
   'AI/ML': { badge: 'bg-pink-500 text-white', dot: 'bg-pink-500', ring: 'ring-pink-500' },
   Migration: { badge: 'bg-teal-500 text-white', dot: 'bg-teal-500', ring: 'ring-teal-500' },
   Billing: { badge: 'bg-emerald-500 text-white', dot: 'bg-emerald-500', ring: 'ring-emerald-500' },
@@ -1065,10 +1511,15 @@ export const CATEGORY_LABELS_TH: Record<Category, string> = {
   Compute: 'ประมวลผล',
   Storage: 'จัดเก็บข้อมูล',
   Database: 'ฐานข้อมูล',
+  Analytics: 'วิเคราะห์ข้อมูล',
   Networking: 'เครือข่าย',
   Security: 'ความปลอดภัย',
   Serverless: 'Serverless',
   Management: 'จัดการระบบ',
+  'Developer Tools': 'เครื่องมือนักพัฒนา',
+  'Business Apps': 'แอปธุรกิจ',
+  'End-User Computing': 'เดสก์ท็อปเสมือน',
+  IoT: 'IoT',
   'AI/ML': 'AI / ML',
   Migration: 'ย้ายระบบ',
   Billing: 'ค่าใช้จ่าย',
